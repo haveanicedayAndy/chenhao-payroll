@@ -1744,9 +1744,15 @@ tr:hover td{background:var(--surface2)}
       </div>
       <div class="frow">
         <div class="fg" style="width:130px">
-          <div class="flabel">補助（元）</div>
+          <div class="flabel">補貼（元）</div>
           <input type="number" id="es2-subsidy" min="0" placeholder="0" style="width:100%" oninput="updateSalaryPreview()">
         </div>
+        <div class="fg" style="flex:1">
+          <div class="flabel">補貼備註 <span style="font-size:10px;color:var(--text3)">(選填)</span></div>
+          <input type="text" id="es2-subsidy-note" placeholder="" style="width:100%">
+        </div>
+      </div>
+      <div class="frow">
         <div class="fg" style="width:130px">
           <div class="flabel">津貼（元）</div>
           <input type="number" id="es2-allowance" min="0" placeholder="0" style="width:100%" oninput="updateSalaryPreview()">
@@ -2684,7 +2690,8 @@ function mSalaryDetail(id){
   const inc = [
     ['計件工資', en.pieceWage], ['月薪', en.mSalary], ['點心費', en.snackAmt],
     ['加班費', en.overtimeAmt], [en.productionBonusName||'生產獎金', en.productionBonusAmt],
-    ['補助款', en.subsidy], ['津貼', en.allowance],
+    [en.subsidyNote ? `補貼（${en.subsidyNote}）` : '補貼', en.subsidy],
+    [en.allowanceNote ? `津貼（${en.allowanceNote}）` : '津貼', en.allowance],
   ].filter(r=>r[1]);
   const ded = [
     ['健保', en.healthInsAmt], ['勞保', en.laborInsAmt], ['自提 6%', en.laborRetirementAmt],
@@ -6167,6 +6174,7 @@ function _woRowHtml(wo){
     <td style="${td};white-space:nowrap;text-align:right" onclick="event.stopPropagation()">
       <div style="display:flex;gap:4px;justify-content:flex-end">
         ${!autoDone?`<button class="btn btn-ghost btn-xs" onclick="toggleWoManualDone('${wo.id}')" title="${wo.manuallyDone?'取消手動完工':'標記完工'}">${wo.manuallyDone?'↩':'✓'}</button>`:''}
+        <button class="btn btn-ghost btn-xs" onclick="printWorkOrder('${wo.id}')" title="列印工單">${ICON.print}</button>
         <button class="btn btn-ghost btn-xs" onclick="openWorkOrderModal('${wo.id}')" title="編輯">${ICON.edit}</button>
         <button class="btn btn-danger btn-xs" onclick="deleteWorkOrder('${wo.id}')" title="刪除">${ICON.del}</button>
       </div>
@@ -6294,7 +6302,7 @@ function renderWorkOrders(){
     <colgroup>
       <col style="width:90px"><col><col style="width:100px">
       <col style="width:200px"><col style="width:180px">
-      <col style="width:80px"><col style="width:120px">
+      <col style="width:110px"><col style="width:152px">
     </colgroup>
     <thead><tr style="background:var(--surface2)">
       ${th('工單號','woNo')}
@@ -6329,6 +6337,71 @@ function toggleWoManualDone(id){
   const wo = db.workOrders.find(w=>w.id===id);
   wo.manuallyDone = !wo.manuallyDone;
   save(); renderWorkOrders();
+}
+
+// ── 列印單張工單（含各工段完成數與逐筆明細）──────────────
+function printWorkOrder(id){
+  const wo = db.workOrders.find(w=>w.id===id);
+  if(!wo){ alert('找不到工單'); return; }
+  const {doneQty, detail} = _woCalc(wo);
+  const autoDone = wo.targetQty>0 && doneQty>=wo.targetQty;
+  const isDone   = autoDone || !!wo.manuallyDone;
+  const pct      = wo.targetQty ? Math.min(100, Math.round(doneQty/wo.targetQty*100)) : 0;
+  const overdue  = !isDone && wo.endDate < today();
+  const status   = wo.manuallyDone && !autoDone ? '手動完工'
+                 : isDone   ? '完工'
+                 : overdue  ? '逾期'
+                 : detail.some(d=>d.qty>0) ? '進行中' : '尚未開始';
+
+  const th  = 'padding:7px 12px;font-size:11px;font-weight:600;text-align:left;background:#f2f1ee;border-bottom:2px solid #ccc;white-space:nowrap';
+  const thR = th + ';text-align:right';
+  const td  = 'padding:6px 12px;font-size:13px;border-bottom:1px solid #eee';
+  const tdR = td + ';font-family:monospace;text-align:right;white-space:nowrap';
+
+  // 工單基本資訊
+  const info = (k,v) => `<div style="display:flex;gap:8px;padding:4px 0">
+    <span style="color:#888;font-size:12px;width:72px;flex-shrink:0">${k}</span>
+    <span style="font-size:13px;font-weight:500">${v}</span></div>`;
+  const infoBlock = `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px;margin-bottom:18px;
+              background:#faf9f6;border:1px solid #e8e6e0;border-radius:8px;padding:12px 16px">
+    ${info('工單號', `<span style="font-family:monospace">${esc(wo.woNo||'—')}</span>`)}
+    ${info('狀態',   `<span style="font-weight:700;color:${isDone?'#2d5a3d':(overdue?'#8b2020':'#1c1b18')}">${status}</span>`)}
+    ${info('客戶',   esc(wo.custName||''))}
+    ${info('款式',   esc(wo.styleName||''))}
+    ${info('期間',   `${fmtDate(wo.startDate)} → ${fmtDate(wo.endDate)}`)}
+    ${info('目標數量', `<span style="font-family:monospace">${wo.targetQty||0}</span>`)}
+    ${info('完成數量', `<span style="font-family:monospace;font-weight:700;color:#2d5a3d">${doneQty}</span>
+                        <span style="color:#888;font-size:12px">／ ${wo.targetQty||0}（${pct}%）</span>`)}
+  </div>`;
+
+  // 工段 + 逐筆明細
+  const rows = detail.length ? detail.map(d=>{
+    const sub = d.rows.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(r=>
+      `<tr>
+        <td style="${td};padding-left:34px;font-size:12px;color:#555;border-bottom:1px solid #f4f3f0">
+          ↳ ${fmtDate(r.date)}　${esc(empDisp(r.empId, r.empName))}</td>
+        <td style="${tdR};font-size:12px;color:#555;border-bottom:1px solid #f4f3f0">${r.qty}</td>
+      </tr>`).join('');
+    return `<tr style="background:#fafaf8">
+        <td style="${td};font-weight:600">
+          ${d.opCode?`<span style="font-family:monospace;color:#999;margin-right:6px">${esc(d.opCode)}</span>`:''}${esc(d.opName)}</td>
+        <td style="${tdR};font-weight:700;${d.qty===0?'color:#8b2020':''}">${d.qty===0?'未記錄':d.qty}</td>
+      </tr>${sub}`;
+  }).join('')
+  : `<tr><td colspan="2" style="${td};color:#aaa;text-align:center">此款式尚無工段</td></tr>`;
+
+  const body = `
+    ${infoBlock}
+    <table style="width:100%;border-collapse:collapse">
+      <colgroup><col><col style="width:110px"></colgroup>
+      <thead><tr><th style="${th}">工段　／　逐筆記錄</th><th style="${thR}">完成數量</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${wo.note?`<div style="margin-top:16px;padding:10px 14px;background:#faf9f6;border-left:3px solid #ccc;
+      font-size:12px;color:#555;white-space:pre-wrap">${esc(wo.note)}</div>`:''}`;
+
+  _openPrintWin(_summaryPageHtml(`工單 ${esc(wo.woNo||'')}　${esc(wo.styleName||'')}`, body));
 }
 
 function _woNextNo(){
@@ -6784,7 +6857,7 @@ const _SC_GROUPS = {
       { key:'snackAmt',           label:'點心費'   },
       { key:'overtimeAmt',        label:'加班費'   },
       { key:'productionBonusAmt', label:'生產獎金' },
-      { key:'subsidy',            label:'補助'     },
+      { key:'subsidy',            label:'補貼'     },
       { key:'allowance',          label:'津貼'     },
     ]
   },
@@ -6900,7 +6973,8 @@ function _scTableHtml(rows){
     const prefix   = type==='income' ? '+' : '-';
     const color    = (val && !isLive) ? incColor : 'var(--text3)';
     const text     = val ? `${prefix}${fmt$(val)}${isLive?'':''}` : '0';
-    const note     = c.key==='allowance' ? (row.entry?.allowanceNote||'') : '';
+    const note     = c.key==='allowance' ? (row.entry?.allowanceNote||'')
+                   : c.key==='subsidy'   ? (row.entry?.subsidyNote||'') : '';
     const tip      = isLive && val ? 'title="未儲存・參考值"' : '';
     const base     = isFooter ? `${tdBase};font-weight:700;background:var(--surface2)` : tdBase;
     const inner    = (note && !isLive && val)
@@ -7441,6 +7515,7 @@ function openEditSalaryEntry(empId, ym){
   document.getElementById('es2-ot-days').value = entry?.overtimeDays || '';
   bonusSel.value = entry?.productionBonusId || '';
   document.getElementById('es2-subsidy').value = entry?.subsidy || '';
+  document.getElementById('es2-subsidy-note').value = entry?.subsidyNote || '';
   document.getElementById('es2-allowance').value = entry?.allowance || '';
   document.getElementById('es2-allowance-note').value = entry?.allowanceNote || '';
   document.getElementById('es2-agency').value = entry?.agencyFee || '';
@@ -7818,7 +7893,8 @@ function saveSalaryEntry(){
     snackDays, snackRate, snackAmt,
     overtimeDays, overtimeRate, overtimeAmt,
     productionBonusId:bonusId, productionBonusName:bonusName, productionBonusAmt:bonusAmt,
-    subsidy, allowance, allowanceNote: document.getElementById('es2-allowance-note')?.value.trim()||'',
+    subsidy, subsidyNote: document.getElementById('es2-subsidy-note')?.value.trim()||'',
+    allowance, allowanceNote: document.getElementById('es2-allowance-note')?.value.trim()||'',
     healthInsDays:healthDays, healthInsId:ins.healthId||null,
     healthInsCost:healthIns?.cost||0, healthInsAmt,
     laborInsDays:laborDays, laborInsId:ins.laborId||null,
@@ -8102,7 +8178,7 @@ function _summaryDetailHalf(e){
   if(e.snackAmt)           left+=mkR(`點心費(${e.snackDays}時)`,'+'+fmt$(e.snackAmt),'#2d5a3d');
   if(e.overtimeAmt)        left+=mkR(`加班費(${e.overtimeDays}天)`,'+'+fmt$(e.overtimeAmt),'#2d5a3d');
   if(e.productionBonusAmt) left+=mkR(e.productionBonusName||'生產獎金','+'+fmt$(e.productionBonusAmt),'#2d5a3d');
-  if(e.subsidy)            left+=mkR('補助','+'+fmt$(e.subsidy),'#2d5a3d');
+  if(e.subsidy)            left+=mkR('補貼','+'+fmt$(e.subsidy),'#2d5a3d');
   if(e.allowance)          left+=mkR('津貼','+'+fmt$(e.allowance),'#2d5a3d');
   if(e.healthInsAmt)       right+=mkR(`健保(${e.healthInsDays}天)`,'-'+fmt$(e.healthInsAmt),'#8b2020');
   if(e.laborInsAmt)        right+=mkR(`勞保(${e.laborInsDays}天)`,'-'+fmt$(e.laborInsAmt),'#8b2020');
@@ -8168,7 +8244,7 @@ function openPrintSalaryModal(empId, ym){
     { key:'snackAmt',           label:'點心費',   amt: entry.snackAmt },
     { key:'overtimeAmt',        label:'加班費',   amt: entry.overtimeAmt },
     { key:'productionBonusAmt', label:'生產獎金', amt: entry.productionBonusAmt },
-    { key:'subsidy',            label:'補助款',   amt: entry.subsidy },
+    { key:'subsidy',            label:'補貼',     amt: entry.subsidy },
     { key:'allowance',          label:'津貼',     amt: entry.allowance },
   ].filter(it => it.amt) : [];
   // 重置：預設「全部顯示」（不隱藏、自訂關閉、清單收合）
@@ -8214,10 +8290,10 @@ function _buildCumChartHtml(empId, ym){
   // 累積（計件）
   let run=0; const cum = daily.map(v=>{ run=Math.round((run+v)*10)/10; return run; });
 
-  // 月底之後兩步：先降（扣款）、再升（補助）
+  // 月底之後兩步：先降（扣款）、再升（補貼）
   const entry     = db.payrollEntries.find(e=>e.empId===empId && e.ym===ym);
   const deduction = entry ? _entryDeduction(entry) : 0;
-  const additions = entry ? Math.max(0, _entryIncome(entry) - (entry.pieceWage||0)) : 0; // 月薪+點心+加班+獎金+補助+津貼
+  const additions = entry ? Math.max(0, _entryIncome(entry) - (entry.pieceWage||0)) : 0; // 月薪+點心+加班+獎金+補貼+津貼
   const afterDed  = Math.round((total - deduction)*10)/10;
   const finalNet  = Math.round((afterDed + additions)*10)/10;
 
@@ -8251,7 +8327,7 @@ function _buildCumChartHtml(empId, ym){
   };
   xlabels += xlabSettle(xAt(iDed), '扣款', '#8b2020');
   xlabels += xlabSettle(xAt(iNet), '實發', '#2d5a3d');
-  // 結算兩步：計件月底 → 扣款（降，紅） → 補助（升，綠） → 實發
+  // 結算兩步：計件月底 → 扣款（降，紅） → 補貼（升，綠） → 實發
   const pEnd = [xAt(daysInMonth-1), yAt(total)];
   const pDed = [xAt(iDed), yAt(afterDed)];
   const pNet = [xAt(iNet), yAt(finalNet)];
@@ -8275,7 +8351,7 @@ function _buildCumChartHtml(empId, ym){
   const legend = `<div style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;font-size:11px;color:#666;margin-top:8px">
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;background:#2a78d6;border-radius:2px"></span>${_L('計件收益累積')}</span>
     <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;background:#d03b3b;border-radius:2px"></span>${_L('扣款')} -${fmt$(deduction)}</span>
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;background:#1baf7a;border-radius:2px"></span>${_L('補助')} +${fmt$(additions)}</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:3px;background:#1baf7a;border-radius:2px"></span>${_L('補貼')} +${fmt$(additions)}</span>
   </div>`;
   return `<div style="margin-top:32px;page-break-inside:avoid">
     <div style="font-size:15px;font-weight:600;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #2d5a3d;color:#2d5a3d">${ICON.nav_payroll} ${_L('本月收益累積圖')}</div>
@@ -8302,7 +8378,7 @@ const SLIP_I18N = {
   '點心費':{en:'Meal allowance',th:'ค่าอาหารว่าง',vi:'Phụ cấp ăn'},
   '加班費':{en:'Overtime pay',th:'ค่าล่วงเวลา',vi:'Tiền tăng ca'},
   '生產獎金':{en:'Production bonus',th:'โบนัสการผลิต',vi:'Thưởng sản xuất'},
-  '補助款':{en:'Subsidy',th:'เงินอุดหนุน',vi:'Trợ cấp'},
+  '補貼':{en:'Subsidy',th:'เงินอุดหนุน',vi:'Trợ cấp'},
   '津貼':{en:'Allowance',th:'เบี้ยเลี้ยง',vi:'Phụ cấp'},
   '其他':{en:'Others',th:'อื่นๆ',vi:'Khác'},
   '健保':{en:'Health insurance',th:'ประกันสุขภาพ',vi:'Bảo hiểm y tế'},
@@ -8328,7 +8404,6 @@ const SLIP_I18N = {
   '最高單日':{en:'Best day',th:'สูงสุดต่อวัน',vi:'Cao nhất/ngày'},
   '扣款':{en:'Deduction',th:'หัก',vi:'Khấu trừ'},
   '實發':{en:'Net paid',th:'จ่ายสุทธิ',vi:'Thực nhận'},
-  '補助':{en:'Subsidy',th:'เงินอุดหนุน',vi:'Trợ cấp'},
   '計件收益累積':{en:'Cumulative piece-rate',th:'รายได้รายชิ้นสะสม',vi:'Lương SP lũy kế'},
 };
 // 列印語言：第一語言 _slipLang1（一定顯示）、第二語言 _slipLang2（null＝單語）
@@ -8400,7 +8475,7 @@ function printSalarySlip(){
   pushInc('snackAmt',           entry.snackAmt,           '點心費', `（${entry.snackDays}時 × $${entry.snackRate}/時）`);
   pushInc('overtimeAmt',        entry.overtimeAmt,        '加班費', `（${entry.overtimeDays}時 × $${entry.overtimeRate}/時）`);
   pushInc('productionBonusAmt', entry.productionBonusAmt, entry.productionBonusName||'生產獎金');
-  pushInc('subsidy',            entry.subsidy,            '補助款');
+  pushInc('subsidy',            entry.subsidy,            '補貼', entry.subsidyNote ? `（${entry.subsidyNote}）` : '');
   pushInc('allowance',          entry.allowance,          '津貼', entry.allowanceNote ? `（${entry.allowanceNote}）` : '');
   if(otherIncome > 0) incRows.push(['其他', '', Math.round(otherIncome*10)/10]);
 

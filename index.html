@@ -317,7 +317,7 @@ tr:hover td{background:var(--surface2)}
   <div id="auth-card">
     <div id="auth-logo-svg" style="margin-bottom:16px"></div>
     <div class="auth-logo">ChenHao 薪資系統</div>
-    <div class="auth-sub">Version 3.5.0</div>
+    <div class="auth-sub">Version 3.5.1</div>
 
     <!-- 設定密碼 -->
     <div id="auth-set-view" style="display:none">
@@ -379,7 +379,7 @@ tr:hover td{background:var(--surface2)}
     </svg>
   </button>
   <span class="hdr-logo">ChenHao 薪資系統</span>
-  <span class="hdr-sub">Version 3.5.0</span>
+  <span class="hdr-sub">Version 3.5.1</span>
   <span class="vo-badge" title="窄螢幕自動進入檢視模式，不開放修改資料">👁 檢視模式</span>
   <div id="hdr-sync-wrap" style="margin-left:auto;display:none;align-items:center;gap:6px;font-size:11px;white-space:nowrap">
     <span id="hdr-sync-icon" style="font-size:13px;line-height:1"></span>
@@ -994,16 +994,31 @@ tr:hover td{background:var(--surface2)}
 
     <!-- 工段調整表格 -->
     <div id="bp-op-wrap" style="display:none">
+      <!-- 統一調整：勾選要調的工段後，一次填入同一個百分比／金額 -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;
+                  background:var(--surface2);border-radius:var(--r);padding:9px 12px">
+        <span style="font-size:12px;color:var(--text2);white-space:nowrap">統一補貼</span>
+        <input type="text" id="bp-bulk" inputmode="decimal" placeholder="20%"
+               style="width:88px;text-align:center;font-family:var(--mono)"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();_bpBulkApply()}">
+        <button class="btn btn-primary btn-sm" onclick="_bpBulkApply()">套用到勾選的工段</button>
+        <span style="flex:1"></span>
+        <button class="btn btn-ghost btn-sm" onclick="_bpCheckAll(true)">全選</button>
+        <button class="btn btn-ghost btn-sm" onclick="_bpCheckAll(false)">全不選</button>
+        <button class="btn btn-ghost btn-sm" onclick="_bpClearAll()">清除補貼</button>
+      </div>
       <table class="bp-op-table" style="table-layout:fixed">
         <colgroup>
+          <col style="width:34px">
           <col>
           <col style="width:100px">
-          <col style="width:120px">
+          <col style="width:150px">
           <col style="width:100px">
           <col style="width:160px">
         </colgroup>
         <thead>
           <tr>
+            <th style="text-align:center"><input type="checkbox" id="bp-check-all" onchange="_bpCheckAll(this.checked)" title="全選／全不選" style="cursor:pointer"></th>
             <th style="text-align:left">工段</th>
             <th style="text-align:right">現行單價</th>
             <th style="text-align:center">補貼 ＋／－</th>
@@ -1013,7 +1028,10 @@ tr:hover td{background:var(--surface2)}
         </thead>
         <tbody id="bp-op-tbody"></tbody>
       </table>
-      <div style="font-size:11px;color:var(--text3);margin-top:8px">補貼欄留空＝該工段不調整。填正數＝加價，負數＝扣減。「現行單價」為基本設定的代表單價，實際套用時每筆記錄以各自原價 ±N。</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">
+        補貼欄可直接輸入<strong>百分比</strong>（例如 <code>20%</code> ＝ 現行單價的 20%）或絕對金額（例如 <code>2.4</code>）；留空＝該工段不調整，負數＝扣減。
+        「現行單價」為基本設定的代表單價，實際套用時每筆記錄以各自原價 ±N。
+      </div>
     </div>
     <div id="bp-empty" style="font-size:13px;color:var(--text3);background:var(--surface2);border-radius:var(--r);padding:14px 16px">請先選擇客戶與款式。</div>
 
@@ -4707,6 +4725,50 @@ function _bpCustChange(){
   _bpRenderOpTable();
 }
 function _bpStyChange(){ _bpRenderOpTable(); }
+// 解析補貼輸入：支援百分比（「20%」＝現行單價的 20%）與絕對金額（「2.4」）。
+// 空白／無法解析回傳 null；金額一律對齊系統慣例取到小數 1 位。
+function _bpParseAdj(raw, base){
+  const v = String(raw ?? '').trim().replace(/％/g, '%');
+  if(!v) return null;
+  const isPct = v.endsWith('%');
+  const num   = parseFloat(isPct ? v.slice(0, -1) : v);
+  if(isNaN(num)) return null;
+  const amt = isPct ? (base * num / 100) : num;
+  return Math.round(amt * 10) / 10;
+}
+
+// 勾選／取消所有工段
+function _bpCheckAll(on){
+  document.querySelectorAll('#bp-op-tbody .bp-op-chk').forEach(c=>{ c.checked = on; });
+  const chkAll = document.getElementById('bp-check-all');
+  if(chkAll) chkAll.checked = on;
+}
+
+// 清除所有已填的補貼
+function _bpClearAll(){
+  document.querySelectorAll('#bp-op-tbody .bp-adj-input').forEach(i=>{ i.value = ''; });
+  _bpPreview();
+}
+
+// 統一補貼：把上方輸入的值套進「已勾選」的工段（未勾選的不動）
+function _bpBulkApply(){
+  const raw  = document.getElementById('bp-bulk')?.value.trim() || '';
+  const chks = [...document.querySelectorAll('#bp-op-tbody .bp-op-chk')].filter(c=>c.checked);
+  if(!raw){ alert('請先輸入統一補貼的百分比或金額（例如 20% 或 2.4）'); return; }
+  if(!chks.length){ alert('請先勾選要套用的工段'); return; }
+  let applied = 0;
+  chks.forEach(c=>{
+    const inp = document.querySelector(`#bp-op-tbody .bp-adj-input[data-op="${c.dataset.op}"]`);
+    if(!inp) return;
+    // 先確認這個值在該列解析得出來，避免填入無效字串
+    if(_bpParseAdj(raw, parseFloat(inp.dataset.base)) === null) return;
+    inp.value = raw;
+    applied++;
+  });
+  if(!applied){ alert('輸入格式無法辨識，請填「20%」或「2.4」這類數值'); return; }
+  _bpPreview();
+}
+
 // 渲染工段調整表格（每工段一行，各自輸入補貼）
 function _bpRenderOpTable(){
   const styId = document.getElementById('bp-sty').value;
@@ -4723,17 +4785,28 @@ function _bpRenderOpTable(){
     const label = (o.code?o.code+'. ':'')+o.name;
     return `
     <tr class="bp-op-main" data-op="${o.id}">
+      <td style="text-align:center"><input type="checkbox" class="bp-op-chk" data-op="${o.id}" style="cursor:pointer"></td>
       <td class="bp-op-name" title="${esc(label)}" onclick="_bpToggleDetail('${o.id}')">
         <span id="bp-caret-${o.id}" style="color:var(--text3);font-size:10px;margin-right:5px">▶</span><span style="overflow:hidden;text-overflow:ellipsis">${esc(label)}</span>
       </td>
       <td class="mono" style="text-align:right;color:var(--text2)">${fmt$(o.price)}</td>
-      <td style="text-align:center"><input type="number" step="0.1" placeholder="—" class="bp-adj-input" data-op="${o.id}" data-base="${o.price}" oninput="_bpPreview()"></td>
+      <td style="text-align:center">
+        <!-- 固定寬度的換算提示，讓每列輸入框對齊（提示有無都不影響版位） -->
+        <span style="display:inline-flex;align-items:center;gap:4px">
+          <input type="text" inputmode="decimal" placeholder="—" class="bp-adj-input" style="width:68px"
+                 data-op="${o.id}" data-base="${o.price}" oninput="_bpPreview()">
+          <span id="bp-eq-${o.id}" class="mono"
+                style="width:44px;flex:0 0 44px;text-align:left;font-size:11px;color:var(--text3)"></span>
+        </span>
+      </td>
       <td class="mono" style="text-align:right" id="bp-after-${o.id}">—</td>
       <td class="mono" style="text-align:right;color:var(--text3)" id="bp-cnt-${o.id}">—</td>
     </tr>
     <tr class="bp-op-detail" id="bp-detail-${o.id}" style="display:none">
-      <td colspan="5" style="background:var(--surface2);padding:8px 12px 10px"><div id="bp-detail-body-${o.id}"></div></td>
+      <td colspan="6" style="background:var(--surface2);padding:8px 12px 10px"><div id="bp-detail-body-${o.id}"></div></td>
     </tr>`;}).join('');
+  const chkAll = document.getElementById('bp-check-all');
+  if(chkAll) chkAll.checked = false;
   wrap.style.display=''; empty.style.display='none';
   _bpPreview();
 }
@@ -4755,11 +4828,10 @@ function _bpCollect(){
   if(!styleId || !from || !to) return null;
   const rows = [];
   document.querySelectorAll('#bp-op-tbody .bp-adj-input').forEach(inp=>{
-    const v = inp.value.trim();
-    if(v==='') return;
-    const amt = parseFloat(v);
-    if(isNaN(amt) || amt===0) return;
-    rows.push({ opId: inp.dataset.op, base: parseFloat(inp.dataset.base), amt });
+    const base = parseFloat(inp.dataset.base);
+    const amt  = _bpParseAdj(inp.value, base);   // 支援「20%」與絕對金額
+    if(amt===null || amt===0) return;
+    rows.push({ opId: inp.dataset.op, base, amt });
   });
   return { styleId, from, to, rows };
 }
@@ -4775,13 +4847,17 @@ function _bpPreview(){
       const afterEl = document.getElementById('bp-after-'+opId);
       const cntEl   = document.getElementById('bp-cnt-'+opId);
       const base = parseFloat(inp.dataset.base);
-      const v = inp.value.trim();
+      const amt  = _bpParseAdj(inp.value, base);
+      const eqEl = document.getElementById('bp-eq-'+opId);
       const st = _bpOpStats(c.styleId, opId, c.from, c.to);
       cntEl.innerHTML = `${st.apply.length} 筆` + (st.lockedSkip.length ? ` <span style="color:var(--text3)">(跳過 ${st.lockedSkip.length} 筆)</span>` : '');
       cntEl.style.color = st.apply.length ? 'var(--text2)' : 'var(--text3)';
-      if(v==='' || isNaN(parseFloat(v)) || parseFloat(v)===0){ afterEl.textContent='—'; afterEl.style.color='var(--text3)'; }
+      // 輸入百分比時，於輸入框旁顯示換算出的金額
+      if(eqEl) eqEl.textContent = (amt!==null && amt!==0 && inp.value.includes('%'))
+        ? `=${amt>0?'+':''}${amt}` : '';
+      if(amt===null || amt===0){ afterEl.textContent='—'; afterEl.style.color='var(--text3)'; }
       else {
-        const after = Math.round((base+parseFloat(v))*10)/10;
+        const after = Math.round((base+amt)*10)/10;
         afterEl.textContent = fmt$(after);
         afterEl.style.color = after<0 ? 'var(--danger)' : '#e07a00';
       }
@@ -4831,9 +4907,8 @@ function _bpRenderDetail(opId){
   if(!from || !to){ body.innerHTML='<span style="color:var(--text3);font-size:12px">請先選擇日期範圍</span>'; return; }
   const inp = document.querySelector(`.bp-adj-input[data-op="${opId}"]`);
   const base = parseFloat(inp.dataset.base);
-  const amtRaw = inp.value.trim();
-  const amt = parseFloat(amtRaw);
-  const hasAmt = !(amtRaw==='' || isNaN(amt) || amt===0);
+  const amt = _bpParseAdj(inp.value, base);        // 支援「20%」與絕對金額
+  const hasAmt = amt!==null && amt!==0;
   const newPrice = hasAmt ? Math.round((base+amt)*10)/10 : null;
   const st = _bpOpStats(styleId, opId, from, to);
   const line = (r, skipped)=>{

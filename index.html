@@ -5415,7 +5415,13 @@ function _crCommonKeys(){
 }
 function _crShowWoPanel(){
   const list = document.getElementById('cr-wo-list');
-  const wos  = _crWosInRange();
+  /* 已完工的不列出來。工作量是「還在做」才需要記的，做完的工單再開欄位
+     只會誤入。要補記已完工工單的工作量，先到工單追蹤取消「手動完工」。
+     注意只濾這個面板，_crWosInRange 本身不動——從舊日期匯入欄位時
+     還是要查得到已完工的工單，否則帶不出當初的單價。 */
+  const inRange = _crWosInRange();
+  const wos     = inRange.filter(w=>!_woIsDone(w));
+  const doneCnt = inRange.length - wos.length;
   // 一張工單常有二三十個工段，但一個員工通常只做其中幾個。
   // 用他的常用任務當篩選器，比從一整排按鈕裡找快得多。
   const common  = _crCommonKeys();
@@ -5428,8 +5434,14 @@ function _crShowWoPanel(){
   const isCommon = (w,o)=> common.has(`${w.styleId}|${o.opId}`);
 
   if(!wos.length){
-    list.innerHTML = `<div style="font-size:13px;color:var(--danger)">
-      此日期範圍內沒有工單。請先到「工單追蹤」建立工單，才能輸入工作量。</div>`;
+    // 分清楚「沒有工單」和「有但都完工了」——後者的下一步完全不同
+    list.innerHTML = doneCnt
+      ? `<div style="font-size:13px;color:var(--text2)">
+          此日期範圍內的 ${doneCnt} 張工單都已完工，沒有需要記錄的。
+          <div style="font-size:12px;color:var(--text3);margin-top:6px">
+          要補記已完工工單的工作量，請先到「工單追蹤」把它的「手動完工」取消。</div></div>`
+      : `<div style="font-size:13px;color:var(--danger)">
+          此日期範圍內沒有工單。請先到「工單追蹤」建立工單，才能輸入工作量。</div>`;
   } else {
     const hdrS = 'font-size:12px;font-weight:600;color:var(--text2);padding:4px 0 2px;border-bottom:1px solid var(--border);margin-bottom:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap';
     const blocks = wos.map(w=>{
@@ -6195,6 +6207,17 @@ tfoot td{border-top:2px solid #999;background:#fafafa;padding:7px 8px}
 let _woDetail    = {}; // woId → bool（卡片細節）
 let _woOpDetail  = {}; // woId+'|'+opName → bool（工段子列）
 
+/* 「已完工」只有這一個定義：手動標記，或完成數達到目標。
+   完成數是所有工段的最小值（_woCalc().doneQty），所以達標代表每一段都做完了。
+   這個判定原本抄在工單追蹤與請款單兩個地方，第三個地方要用之前先收成一份，
+   免得將來有人只改其中一邊。 */
+function _woIsDone(wo){
+  if(!wo) return false;
+  if(wo.manuallyDone) return true;
+  const {doneQty} = _woCalc(wo);
+  return wo.targetQty > 0 && doneQty >= wo.targetQty;
+}
+
 function _woCalc(wo){
   // 工作量一律歸屬工單，直接以 woId 比對
   const recs = db.records.filter(r=> r.woId===wo.id);
@@ -6364,7 +6387,7 @@ function woClearFilters(){
 
 function renderWorkOrders(){
   const list = document.getElementById('wo-list');
-  const _isDone = wo=>{ const {doneQty}=_woCalc(wo); return wo.manuallyDone||(wo.targetQty>0&&doneQty>=wo.targetQty); };
+  const _isDone = _woIsDone;
   const todayStr = today();
   const custF   = document.getElementById('flt-wo-cust')?.value   || '';
   const fromF   = document.getElementById('flt-wo-from')?.value   || '';
@@ -10465,8 +10488,7 @@ function _ifwCandidates(){
     if(custId && w.custId!==custId) return false;
     if(woInvoiced(w.id)) return false;
     if(!hit(w)) return false;
-    const {doneQty} = _woCalc(w);
-    return w.manuallyDone || (w.targetQty>0 && doneQty>=w.targetQty);
+    return _woIsDone(w);
   }).sort((a,b)=>(b.endDate||'').localeCompare(a.endDate||''));
 }
 function _ifwRender(){

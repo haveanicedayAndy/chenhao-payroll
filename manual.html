@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>成衣製造薪資計算系統 — 使用說明書</title>
+<style>
+  :root{
+    --accent:#2d5a3d;
+    --accent-l:#e8f2eb;
+    --danger:#8b2020;
+    --danger-l:#fbeaea;
+    --warn:#7a5c00;
+    --warn-l:#fdf8e8;
+    --blue:#1a5abf;
+    --blue-l:#e8eef8;
+    --text:#1c1b18;
+    --text2:#4a4a44;
+    --text3:#888;
+    --border:#e2e0da;
+    --surface:#f7f6f3;
+    --surface2:#f0ede8;
+    --white:#fff;
+    --sidebar-w:260px;
+    --r:8px;
+    --mono:'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;color:var(--text);background:var(--white);font-size:15px;line-height:1.8}
+
+  /* ── 側邊欄 ── */
+  .sidebar{
+    position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+    background:#1c1b18;color:#d4d2cc;overflow-y:auto;
+    padding:0 0 40px;z-index:100;
+  }
+  .sidebar-logo{
+    padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,.1);
+    font-size:13px;font-weight:700;color:#fff;letter-spacing:.03em;line-height:1.4;
+  }
+  .sidebar-logo .sub{font-size:10px;color:#888;font-weight:400;margin-top:2px}
+  .sidebar-section{padding:16px 20px 4px;font-size:10px;color:#666;letter-spacing:.1em;font-weight:600;text-transform:uppercase}
+  .sidebar a{
+    display:block;padding:7px 20px;font-size:13px;color:#b0aea8;
+    text-decoration:none;transition:all .15s;border-left:3px solid transparent;
+  }
+  .sidebar a:hover{color:#fff;background:rgba(255,255,255,.06);border-left-color:rgba(255,255,255,.2)}
+  .sidebar a.active{color:#90e8a8;border-left-color:#2d5a3d;background:rgba(45,90,61,.2)}
+
+  /* ── 主內容 ── */
+  .main{margin-left:var(--sidebar-w);padding:48px 64px;max-width:1050px}
+
+  /* ── 封面 ── */
+  .cover{padding:40px 0 44px;border-bottom:2px solid var(--border);margin-bottom:52px}
+  .cover-badge{
+    display:inline-block;background:var(--accent-l);color:var(--accent);
+    font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;
+    letter-spacing:.05em;margin-bottom:16px;
+  }
+  .cover h1{font-size:36px;font-weight:800;line-height:1.2;margin-bottom:12px;color:#1c1b18}
+  .cover .subtitle{font-size:16px;color:var(--text2);margin-bottom:24px;max-width:62ch}
+  .cover-meta{display:flex;gap:28px;flex-wrap:wrap;font-size:12px;color:var(--text3);font-family:var(--mono)}
+
+  /* ── 章節 ── */
+  section{margin-bottom:60px;scroll-margin-top:24px}
+  h2{
+    font-size:24px;font-weight:800;margin-bottom:6px;color:#1c1b18;
+    padding-bottom:10px;border-bottom:2px solid var(--accent);display:inline-block;
+  }
+  .sec-lead{font-size:14px;color:var(--text2);margin:10px 0 24px;max-width:70ch}
+  h3{font-size:17px;font-weight:700;margin:32px 0 10px;color:#1c1b18}
+  h4{font-size:14px;font-weight:700;margin:22px 0 8px;color:var(--text2)}
+  p{margin-bottom:14px;max-width:72ch}
+  ul,ol{margin:0 0 14px 22px;max-width:72ch}
+  li{margin-bottom:7px}
+  strong{font-weight:700;color:#1c1b18}
+  code{
+    font-family:var(--mono);font-size:.86em;background:var(--surface2);
+    padding:2px 6px;border-radius:4px;color:#1c1b18;
+  }
+
+  /* ── 步驟 ── */
+  .steps{counter-reset:s;margin:18px 0 22px;max-width:72ch}
+  .step{
+    position:relative;padding:12px 0 12px 42px;border-top:1px solid var(--border);
+  }
+  .step:last-child{border-bottom:1px solid var(--border)}
+  .step::before{
+    counter-increment:s;content:counter(s);
+    position:absolute;left:0;top:13px;width:24px;height:24px;
+    background:var(--accent);color:#fff;border-radius:50%;
+    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  }
+  .step-t{font-weight:700;margin-bottom:2px}
+  .step p{margin:0;font-size:14px;color:var(--text2)}
+
+  /* ── 提示框 ── */
+  .note,.warn,.tip{
+    padding:14px 18px;border-radius:var(--r);margin:18px 0;max-width:72ch;
+    border-left:3px solid;font-size:14px;line-height:1.75;
+  }
+  .note{background:var(--blue-l);border-color:var(--blue)}
+  .warn{background:var(--danger-l);border-color:var(--danger)}
+  .tip{background:var(--warn-l);border-color:#c8a000}
+  .note p:last-child,.warn p:last-child,.tip p:last-child{margin-bottom:0}
+  .note-t,.warn-t,.tip-t{font-weight:700;display:block;margin-bottom:4px}
+  .note-t{color:var(--blue)} .warn-t{color:var(--danger)} .tip-t{color:var(--warn)}
+
+  /* ── 表格 ── */
+  .tbl{overflow-x:auto;margin:18px 0;border:1px solid var(--border);border-radius:var(--r)}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px;background:var(--white)}
+  th{
+    text-align:left;background:var(--surface);font-size:12px;font-weight:700;
+    color:var(--text2);padding:10px 14px;border-bottom:2px solid var(--border);white-space:nowrap;
+  }
+  td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.7}
+  tbody tr:last-child td{border-bottom:none}
+  td.mono,th.mono{font-family:var(--mono);white-space:nowrap}
+
+  /* ── 流程圖 ── */
+  .flow{display:flex;align-items:stretch;gap:0;margin:22px 0 8px;flex-wrap:wrap}
+  .fnode{
+    flex:1;min-width:170px;background:var(--white);border:1px solid var(--border);
+    border-radius:var(--r);padding:14px 16px;
+  }
+  .fnode.key{border-color:var(--accent);background:var(--accent-l)}
+  .fnode h5{font-size:16px;font-weight:800;margin-bottom:2px}
+  .fnode .role{font-size:11px;color:var(--text2);margin-bottom:8px}
+  .fnode .d{font-size:12px;color:var(--text2);line-height:1.7}
+  .farrow{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 10px;min-width:74px}
+  .farrow .g{font-size:16px;color:var(--accent);font-family:var(--mono)}
+  .farrow .l{font-size:10px;color:var(--text3);text-align:center;line-height:1.5}
+  @media(max-width:780px){
+    .flow{flex-direction:column}
+    .farrow{flex-direction:row;padding:8px 0;gap:8px;min-width:0}
+    .farrow .g{transform:rotate(90deg)}
+  }
+
+  /* ── 按鈕示意 ── */
+  .btn-demo{
+    display:inline-block;background:var(--surface2);border:1px solid var(--border);
+    border-radius:5px;padding:1px 8px;font-size:13px;white-space:nowrap;
+  }
+  .btn-demo.p{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .badge{
+    display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap;
+  }
+  .badge.ok{background:var(--accent-l);color:var(--accent)}
+  .badge.w{background:var(--warn-l);color:var(--warn)}
+  .badge.d{background:var(--danger-l);color:var(--danger)}
+
+  .faq{border-top:1px solid var(--border);padding:16px 0}
+  .faq:last-child{border-bottom:1px solid var(--border)}
+  .faq-q{font-weight:700;margin-bottom:6px}
+  .faq p{margin:0;font-size:14px;color:var(--text2)}
+
+  footer{
+    margin-top:70px;padding-top:22px;border-top:1px solid var(--border);
+    font-size:12px;color:var(--text3);font-family:var(--mono);
+    display:flex;gap:24px;flex-wrap:wrap;
+  }
+  @media(max-width:900px){
+    .sidebar{display:none}
+    .main{margin-left:0;padding:28px 20px}
+  }
+  /* ── UI 模擬圖（沿用舊版說明書的樣式，讓看過舊手冊的人不會陌生）── */
+.mockup-wrap{margin:20px 0 28px;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.mockup-caption{font-size:12px;color:var(--text3);text-align:center;width:100%}
+.mockup{
+    width:100%;border:1px solid #ccc;border-radius:10px;overflow:hidden;
+    box-shadow:0 4px 20px rgba(0,0,0,.12);background:#fff;
+    font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;
+  }
+.mk-bar{
+    background:#f0ede8;border-bottom:1px solid #ddd;
+    padding:8px 14px;display:flex;align-items:center;gap:8px;
+  }
+.mk-dot{width:11px;height:11px;border-radius:50%}
+.mk-dot-r{background:#ff5f57}
+.mk-bar-title{flex:1;text-align:center;font-size:11px;color:#888;font-weight:500}
+.mk-body{background:#1c1b18;padding:16px;overflow-x:auto}
+.mk-body-light{background:#f7f6f3;padding:16px;overflow-x:auto}
+.mk-modal{background:#fff;border-radius:8px;padding:20px;max-width:520px;margin:0 auto;box-shadow:0 8px 32px rgba(0,0,0,.35)}
+.mk-modal-title{font-size:15px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #e2e0da}
+.mk-label{font-size:10px;color:#888;margin-bottom:3px;font-weight:600;letter-spacing:.04em}
+.mk-select{
+    background:#f7f6f3;border:1px solid #ddd;border-radius:5px;
+    padding:5px 8px;font-size:12px;color:#333;display:inline-block;
+    min-width:100px;
+  }
+.mk-select.disabled{background:#eee;color:#aaa;border-color:#ddd}
+.mk-select.active{border-color:#2d5a3d;background:#e8f2eb;color:#2d5a3d}
+.mk-input{
+    background:#f7f6f3;border:1px solid #ddd;border-radius:5px;
+    padding:5px 8px;font-size:12px;color:#333;display:inline-block;width:60px;text-align:right;
+  }
+.mk-btn{
+    display:inline-block;padding:4px 10px;border-radius:5px;font-size:11px;
+    font-weight:700;cursor:default;
+  }
+.mk-btn-g{background:#2d5a3d;color:#fff}
+.mk-btn-ghost{background:#f0ede8;color:#4a4a44;border:1px solid #ccc}
+.mk-btn-success{background:#e8f2eb;color:#2d5a3d;border:1px solid #a8c5b0}
+.mk-btn-danger{background:#fdf0f0;color:#8b2020;border:1px solid #e0b0b0}
+.mk-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.mk-divider{border:none;border-top:1px solid #e2e0da;margin:10px 0}
+.mk-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.mk-card{background:#fff;border:1px solid #e2e0da;border-radius:8px;overflow:hidden;margin-bottom:8px}
+.mk-card-hdr{
+    background:#1c1b18;color:#fff;padding:9px 14px;
+    display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;
+  }
+.mk-card-hdr-green{background:#2d5a3d}
+.mk-card-body{padding:10px 14px}
+.mk-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}
+.mk-table th{background:#f2f1ee;padding:5px 8px;text-align:left;border-bottom:1px solid #ddd;font-size:10px;font-weight:700;color:#666}
+.mk-table td{padding:5px 8px;border-bottom:1px solid #f0ede8;color:#333}
+.mk-table tr:last-child td{border-bottom:none}
+.mk-acc{background:#fff;border:1px solid #ddd;border-radius:6px;overflow:hidden;margin-bottom:6px}
+.mk-acc-hdr{background:#2d5a3d;color:#fff;padding:8px 12px;font-size:12px;font-weight:600;display:flex;justify-content:space-between}
+.mk-acc-sub{background:#1c1b18;color:#d4d2cc;padding:6px 12px 6px 24px;font-size:11px;display:flex;justify-content:space-between}
+.mk-acc-body{padding:0}
+.mk-amount{font-family:monospace;color:#2d5a3d;font-weight:700}
+.mk-amount-neg{font-family:monospace;color:#8b2020;font-weight:700}
+.mk-auto-badge{font-size:9px;background:#e8f2eb;color:#2d5a3d;border:1px solid #a8c5b0;border-radius:3px;padding:1px 4px;font-weight:700;vertical-align:middle}
+.mk-manual-badge{font-size:9px;background:#fff8e8;color:#8b6020;border:1px solid #d4b870;border-radius:3px;padding:1px 4px;font-weight:700;vertical-align:middle}
+.mk-annot{
+    position:relative;display:inline-block;
+    border:2px dashed #f0a030;border-radius:5px;padding:1px 3px;
+  }
+.mk-arrow-label{font-size:11px;color:#f0a030;font-weight:700;white-space:nowrap}
+.mk-section-label{font-size:10px;color:#888;letter-spacing:.08em;font-weight:700;text-transform:uppercase;padding:6px 0 2px}
+.mk-net{
+    background:#e8f2eb;border:2px solid #2d5a3d;border-radius:6px;
+    padding:8px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;
+  }
+.mk-net-label{font-size:12px;font-weight:700;color:#2d5a3d}
+.mk-net-amt{font-size:20px;font-weight:700;font-family:monospace;color:#2d5a3d}
+.mk-step-flow{display:flex;align-items:stretch;gap:0;margin:8px 0;flex-wrap:wrap}
+.mk-step-box{flex:1 1 240px;min-width:0;background:#f7f6f3;border:1px solid #ddd;border-radius:6px;padding:12px;font-size:12px}
+.mk-step-arrow{display:flex;align-items:center;padding:0 8px;font-size:20px;color:#2d5a3d;font-weight:700}
+@media(max-width:1180px){
+  .mk-step-flow{flex-direction:column}
+  .mk-step-arrow{padding:6px 0;justify-content:center;transform:rotate(90deg)}
+}
+.mk-filter-bar{background:#f7f6f3;border:1px solid #ddd;border-radius:6px;padding:12px 14px;display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap}
+.mk-filter-item{display:flex;flex-direction:column;gap:3px}
+  .mk-th{font-size:10px;color:#888;font-weight:700;padding:4px 8px;text-align:left;white-space:nowrap}
+  .mk-td{font-size:11px;padding:5px 8px;border-top:1px solid #eee;white-space:nowrap}
+  .mk-note{font-size:10px;color:#8b6914;background:#fdf8e8;border:1px dashed #d4b45a;
+           border-radius:4px;padding:3px 8px;display:inline-block;margin-top:6px}
+  .mk-cell{border:1px solid #ddd;text-align:center;font-size:11px;padding:4px 0;background:#fff}
+  .mk-cell.has{background:#e8f2eb;color:#2d5a3d;font-weight:700}
+  .mk-cell.lock{background:#f0ede8;color:#aaa}
+  @media (max-width:700px){ .mockup{font-size:11px} }
+
+  @media print{
+    .sidebar{display:none} .main{margin-left:0;max-width:none;padding:0}
+    section{page-break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sidebar-logo">成衣製造薪資計算系統<div class="sub">使用說明書　Ver 4.0.1</div></div>
+
+  <div class="sidebar-section">開始</div>
+  <a href="#start">1　開始使用</a>
+  <a href="#core">2　核心觀念</a>
+
+  <div class="sidebar-section">基本設定</div>
+  <a href="#setup">3　客戶・款式・工段</a>
+  <a href="#wo">4　工單追蹤</a>
+  <a href="#invoice">5　請款單</a>
+
+  <div class="sidebar-section">員工與薪資</div>
+  <a href="#emp">6　員工管理</a>
+  <a href="#rec">7　工作量</a>
+  <a href="#wage">8　工資</a>
+  <a href="#msalary">9　月薪</a>
+  <a href="#ins">10　勞健保</a>
+  <a href="#salary">11　薪資計算</a>
+
+  <div class="sidebar-section">系統</div>
+  <a href="#backup">12　備份與雲端</a>
+  <a href="#mobile">13　手機檢視</a>
+  <a href="#faq">14　常見問題</a>
+</nav>
+
+<div class="main">
+
+<div class="cover">
+  <div class="cover-badge">USER MANUAL</div>
+  <h1>成衣製造薪資計算系統</h1>
+  <p class="subtitle">
+    從接單到請款的一條龍：建立工單、記錄每個工段做了多少、算出計件工資、
+    結算薪資單、開請款單給客戶。這份說明書照著實際操作順序寫。
+  </p>
+  <div class="cover-meta">
+    <span>Version 4.0.1</span>
+    <span>更新日期 2026-08-18</span>
+    <span>單一 HTML 檔・離線可用</span>
+  </div>
+</div>
+
+<!-- ══════════ 1 開始使用 ══════════ -->
+<section id="start">
+  <h2>1　開始使用</h2>
+  <p class="sec-lead">系統是一個 HTML 檔，用瀏覽器打開就能用。資料存在這台電腦的瀏覽器裡，設定雲端同步之後才會跨裝置。</p>
+
+  <h3>登入</h3>
+  <p>開啟網址後輸入密碼。密碼是第一次使用時自己設定的，忘記的話只能從備份檔還原。</p>
+
+  <h3>畫面結構</h3>
+  <p>左邊是選單，分三組：</p>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">成衣製造薪資計算系統</div></div>
+      <div style="display:flex;min-height:250px">
+        <div style="width:170px;background:#1c1b18;color:#d4d2cc;padding:12px 0;flex-shrink:0">
+          <div style="padding:0 14px 12px;border-bottom:1px solid #333">
+            <div style="font-size:12px;font-weight:700;color:#fff">薪資計算系統</div>
+            <div style="font-size:9px;color:#888;margin-top:2px">Ver 4.0.1</div></div>
+          <div class="mk-section-label" style="padding:10px 14px 4px;color:#777">基本設定</div>
+          <div style="padding:5px 14px;font-size:11px">客戶・款式・工段</div>
+          <div style="padding:5px 14px;font-size:11px;background:#2d5a3d;color:#fff;font-weight:700">工單追蹤</div>
+          <div style="padding:5px 14px;font-size:11px">請款單</div>
+          <div class="mk-section-label" style="padding:10px 14px 4px;color:#777">員工與薪資</div>
+          <div style="padding:5px 14px;font-size:11px">員工管理</div>
+          <div style="padding:5px 14px;font-size:11px">工作量</div>
+          <div style="padding:5px 14px;font-size:11px">工資</div>
+          <div style="padding:5px 14px;font-size:11px">月薪</div>
+          <div style="padding:5px 14px;font-size:11px">勞健保</div>
+          <div style="padding:5px 14px;font-size:11px">薪資計算</div>
+          <div class="mk-section-label" style="padding:10px 14px 4px;color:#777">系統</div>
+          <div style="padding:5px 14px;font-size:11px">備份／還原</div>
+        </div>
+        <div class="mk-body-light" style="flex:1;padding:14px">
+          <div class="mk-row" style="justify-content:space-between">
+            <div style="font-size:14px;font-weight:700;color:#2b2a26">工單追蹤</div>
+            <div><span class="mk-btn mk-btn-ghost">📥 匯出</span> <span class="mk-btn mk-btn-g">＋ 新增工單</span></div>
+          </div>
+          <div class="mk-filter-bar" style="padding:8px 12px">
+            <div class="mk-filter-item"><div class="mk-label">客戶</div><div class="mk-select">全部</div></div>
+            <div class="mk-filter-item"><div class="mk-label">狀態</div><div class="mk-select">全部</div></div>
+            <div class="mk-filter-item"><span class="mk-btn mk-btn-ghost">清除</span></div>
+          </div>
+          <div class="mk-card" style="margin-top:10px">
+            <div class="mk-card-hdr"><span>TW001-2026-001　名人泳裝</span><span>進行中</span></div>
+            <div class="mk-card-body" style="font-size:11px;color:#666">#5416 泳裝　　1,200 件　　已完成 840 件</div>
+          </div>
+          <div class="mk-card">
+            <div class="mk-card-hdr mk-card-hdr-green"><span>TW001-2026-002　名人泳裝</span><span>已完工</span></div>
+            <div class="mk-card-body" style="font-size:11px;color:#666">#5417 連身泳裝　　600 件　　已完成 600 件</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 左邊固定是選單（三組），右邊是內容。標題列右上角永遠是這一頁的動作鈕</div>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>分組</th><th>頁面</th><th>做什麼</th></tr></thead>
+      <tbody>
+        <tr><td><strong>基本設定</strong></td><td>客戶・款式・工段</td><td>建立客戶、款式與各款式的工段</td></tr>
+        <tr><td></td><td>工單追蹤</td><td>開工單、看進度、設定單價與補貼</td></tr>
+        <tr><td></td><td>請款單</td><td>對客戶請款、記錄到帳</td></tr>
+        <tr><td><strong>員工與薪資</strong></td><td>員工管理</td><td>員工資料、常用任務、標籤</td></tr>
+        <tr><td></td><td>工作量</td><td>記錄每個人每天做了哪些工段、多少件</td></tr>
+        <tr><td></td><td>工資</td><td>依員工→客戶→款式看計件工資明細</td></tr>
+        <tr><td></td><td>月薪</td><td>底薪設定與調薪歷史</td></tr>
+        <tr><td></td><td>勞健保</td><td>保險種類與員工投保設定</td></tr>
+        <tr><td></td><td>薪資計算</td><td>結算當月實發薪資、列印薪資單</td></tr>
+        <tr><td><strong>系統</strong></td><td>備份／還原</td><td>匯出備份、雲端同步設定</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="note-t">窄螢幕自動變唯讀</span>
+    <p>螢幕寬度小於 820px（手機、平板直立）時，系統自動切換到<strong>手機檢視版</strong>，只能看不能改。
+       小螢幕誤觸就可能改錯薪資，所以這是硬性限制——即使有按鈕沒被藏起來，也寫不進資料。
+       詳見 <a href="#mobile">13 手機檢視</a>。</p>
+  </div>
+</section>
+
+<!-- ══════════ 2 核心觀念 ══════════ -->
+<section id="core">
+  <h2>2　核心觀念</h2>
+  <p class="sec-lead">整套系統只有一條主線。理解這一節，其他所有規則都是它的延伸。</p>
+
+  <div class="flow">
+    <div class="fnode">
+      <h5>款式</h5>
+      <div class="role">模板</div>
+      <div class="d">這個客戶的這一款要做哪些工段、每個工段大概多少錢。<br><strong>隨時可以改。</strong></div>
+    </div>
+    <div class="farrow"><span class="g">→</span><span class="l">開工單時<br>抄一份下來</span></div>
+    <div class="fnode key">
+      <h5>工單</h5>
+      <div class="role">這一批的合約</div>
+      <div class="d">哪個客戶、哪一款、什麼期間、做幾件、每個工段談多少錢。<br><strong>抄下來就凍結。</strong></div>
+    </div>
+    <div class="farrow"><span class="g">→</span><span class="l">誰做了<br>多少</span></div>
+    <div class="fnode">
+      <h5>工作量</h5>
+      <div class="role">帳</div>
+      <div class="d">某人某天替某張工單的某個工段做了幾件。<br><strong>錢就從這裡算出來。</strong></div>
+    </div>
+  </div>
+
+  <h3>為什麼要分三層</h3>
+  <p>
+    因為<strong>款式會改，但已經談定的事不能改</strong>。
+  </p>
+  <p>
+    舉例：客戶的 <code>#5416 泳裝</code> 你原本車縫報 $12／打。六月接了一批急單，加班趕工，
+    那一批的車縫談到 $14.4。七月又接一批，恢復 $12。
+  </p>
+  <ul>
+    <li>款式上寫的 $12 是<strong>平常的價</strong>，是開新工單時的預設值</li>
+    <li>六月那張工單記著 $14.4，<strong>永遠是 $14.4</strong>——就算你之後把款式改成 $15，六月那批也不會變</li>
+    <li>六月的每一筆工作量都掛在六月那張工單底下，所以算出來的工資一定是 $14.4 的價</li>
+  </ul>
+
+  <div class="tip">
+    <span class="tip-t">一句話規則</span>
+    <p>主檔（客戶、款式、員工）隨時可以改。<strong>工單與工作量是已經發生的事，抄下來就凍結，一個例外都沒有。</strong></p>
+  </div>
+
+  <h3>這條規則造成的實際結果</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>你做的事</th><th>會發生什麼</th></tr></thead>
+      <tbody>
+        <tr><td>改款式的工段單價</td><td>只影響<strong>之後</strong>新開的工單。既有工單與記錄完全不動</td></tr>
+        <tr><td>改款式名稱</td><td>既有工單仍顯示開單當時的名稱</td></tr>
+        <tr><td>改客戶名稱</td><td>同上</td></tr>
+        <tr><td>刪除款式</td><td>既有工單照常顯示、照常算工資、照常列印。只是不能再用它開新工單</td></tr>
+        <tr><td>改工單的工段單價</td><td>底下<strong>所有還沒結算</strong>的工作量，工資立刻跟著變</td></tr>
+        <tr><td>結算薪資之後改工單價</td><td>不給改。錢發出去了就鎖住</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>數量的單位</h3>
+  <p>
+    工作量的「數量」一律是<strong>件</strong>，單價一律是<strong>元／打</strong>。
+    工資 ＝ 件數 ÷ 12 × 單價，四捨五入到小數一位。
+  </p>
+  <p>例：做了 <code>36 件</code>，單價 <code>$14.4／打</code> → 36 ÷ 12 × 14.4 = <strong>$43.2</strong></p>
+</section>
+
+<!-- ══════════ 3 客戶款式工段 ══════════ -->
+<section id="setup">
+  <h2>3　客戶・款式・工段</h2>
+  <p class="sec-lead">所有東西的源頭。這一頁是巢狀的：客戶底下是款式，款式底下是工段。</p>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">客戶・款式・工段</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div class="mk-card">
+          <div class="mk-card-hdr" style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#1c1b18;color:#fff;font-size:13px">
+            <span>🏢 名人泳裝　<span style="font-family:monospace;font-size:10px;opacity:.6">TW001</span></span>
+            <span style="font-size:10px;opacity:.85">＋ 新增款式　✏️　🗑️　▲</span>
+          </div>
+          <div style="padding:10px 12px;background:#fff">
+            <div style="border:1px solid #e2e0da;border-radius:6px;overflow:hidden;margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#2d5a3d;color:#fff;font-size:12px">
+                <span>👕 #5416 小孩連身泳裝</span>
+                <span style="font-size:10px;opacity:.85">＋ 新增工段　✏️　🗑️</span>
+              </div>
+              <table style="width:100%;border-collapse:collapse;background:#fff">
+                <tr><th class="mk-th">編號</th><th class="mk-th">工段名稱</th><th class="mk-th">機台</th>
+                    <th class="mk-th" style="text-align:right">單價/打</th><th class="mk-th"></th></tr>
+                <tr><td class="mk-td" style="font-family:monospace;color:#888">1</td><td class="mk-td">三針拷袖口</td>
+                    <td class="mk-td" style="color:#888">拷克</td><td class="mk-td" style="text-align:right;font-family:monospace">$12.0</td>
+                    <td class="mk-td" style="text-align:right;color:#aaa">✏️ 🗑️</td></tr>
+                <tr><td class="mk-td" style="font-family:monospace;color:#888">2</td><td class="mk-td">接檔底＋側邊</td>
+                    <td class="mk-td" style="color:#888">拷克</td><td class="mk-td" style="text-align:right;font-family:monospace">$20.0</td>
+                    <td class="mk-td" style="text-align:right;color:#aaa">✏️ 🗑️</td></tr>
+              </table>
+            </div>
+            <div style="border:1px solid #e2e0da;border-radius:6px;padding:6px 10px;font-size:12px;color:#888;background:#faf9f6">
+              👕 #5768 外套（左袖 兩條貼條）　<span style="font-size:10px">▼ 點開看工段</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 三層結構：客戶（深色列）→ 款式（綠色列）→ 工段（表格）。點標題列展開或收合</div>
+  </div>
+
+  <h3>客戶</h3>
+  <div class="steps">
+    <div class="step"><div class="step-t">新增客戶</div>
+      <p>右上角 <span class="btn-demo p">＋ 新增客戶</span>。必填只有名稱與<strong>國別</strong>。</p></div>
+    <div class="step"><div class="step-t">客戶代號自動產生</div>
+      <p>選了國別（台灣／中國／日本／韓國／美國）之後，系統自動配一個代號：
+         <code>TW001</code>、<code>TW002</code>、<code>US001</code>…。你不用也不能自己編。</p></div>
+    <div class="step"><div class="step-t">其餘欄位選填</div>
+      <p>統一編號、聯絡人、電話、手機、地址。這些會在開請款單時自動帶入。</p></div>
+  </div>
+
+  <div class="note">
+    <span class="note-t">客戶代號會用在工單號上</span>
+    <p>工單號的格式是 <code>客戶代號-年份-流水號</code>，例如 <code>TW002-2026-005</code>。
+       所以客戶沒有代號就開不出工單號。舊客戶如果還沒有代號，編輯它、選一個國別即可補上。</p>
+  </div>
+
+  <h3>款式</h3>
+  <p>在客戶區塊裡點 <span class="btn-demo">＋ 新增款式</span>。同一個客戶底下<strong>名稱不能重複</strong>。</p>
+
+  <h4>從現有款式複製工段</h4>
+  <p>
+    新增款式視窗裡有 <span class="btn-demo">複製工段</span>。選一個現有款式（可以是別的客戶的），
+    按「套用」就把它的整套工段帶過來。<strong>會取代目前已經輸入的工段</strong>，不是附加。
+  </p>
+  <p>做類似款式時很省事——帶過來之後再改名稱、調價就好。</p>
+
+  <h4>款式照片</h4>
+  <p>每個款式最多 3 張照片，可以拖曳上傳或貼上。</p>
+
+  <h4>裁剪</h4>
+  <p>
+    上傳後會跳出裁剪視窗：<strong>拖動照片調位置，滾輪或滑桿縮放</strong>，裁剪框內的正方形範圍就是最後存下來的。
+    點縮圖可以放大看原圖。
+  </p>
+
+  <h4>同步</h4>
+  <p>照片跟主資料<strong>分開儲存</strong>，也分開同步：</p>
+  <ul>
+    <li>主資料會自動同步到雲端</li>
+    <li><strong>照片不會自動同步</strong>，要到「備份／還原」按「📥 從 GitHub 還原照片」才會下載到這台裝置</li>
+    <li>某台裝置還沒下載照片時，款式會顯示「有 N 張照片還沒同步到這台裝置」——連結不會遺失，不用擔心</li>
+  </ul>
+
+  <h3>工段</h3>
+  <p>在款式區塊裡新增。每個工段有：</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">編號</td><td>排序與辨識用，例如 <code>1</code>、<code>2</code>、<code>10</code>。列印與報表都會帶</td></tr>
+        <tr><td class="mono">名稱</td><td>例如「三針拷袖口」「接檔底＋側邊」</td></tr>
+        <tr><td class="mono">機台</td><td>從機台清單選，例如平車、拷克。選填</td></tr>
+        <tr><td class="mono">單價</td><td>元／打。這是<strong>平常的價</strong>，開工單時當預設值帶入</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>重新排序編號</h4>
+  <p>款式區塊有「重新編號」，會依目前順序把工段編號重排成 1、2、3…。這只改款式，<strong>不會動到既有工單</strong>。</p>
+
+  <h3>機台</h3>
+  <p>
+    右上角 <span class="btn-demo">機台管理</span> 維護清單（平車、拷克、雙針⋯）。
+    工段記的是機台<strong>名稱</strong>不是編號，所以刪掉一台機器不會讓任何資料變成空的，
+    只是下拉選單少一個選項。刪除時系統會告訴你目前有幾個款式工段用到它。
+  </p>
+
+  <h3>刪除：一般刪除 vs 永久刪除</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th></th><th>一般刪除</th><th>永久刪除</th></tr></thead>
+      <tbody>
+        <tr><td>資料</td><td>完整保留，移到「已刪除」區</td><td>真的消失</td></tr>
+        <tr><td>還原</td><td>隨時可以</td><td>不行</td></tr>
+        <tr><td>舊記錄</td><td>照常顯示，並標示「(已刪除)」</td><td>照常顯示，但<strong>不再標示已刪除</strong></td></tr>
+        <tr><td>能不能開新工單</td><td>不行</td><td>不行</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="warn">
+    <span class="warn-t">建議一律用「一般刪除」</span>
+    <p>永久刪除唯一多做的事，是讓你<strong>失去「這個客戶／款式已經不做了」這個資訊</strong>——
+       舊記錄看起來會跟正常資料一模一樣。而且底下還有工單的話，系統會擋下來不讓你永久刪除。</p>
+  </div>
+</section>
+
+<!-- ══════════ 4 工單追蹤 ══════════ -->
+<section id="wo">
+  <h2>4　工單追蹤</h2>
+  <p class="sec-lead">工單是整套系統的核心。每一筆工作量都必須屬於一張工單，工資也是從工單上的單價算出來的。</p>
+
+  <h3>建立工單</h3>
+  <div class="steps">
+    <div class="step"><div class="step-t">選客戶與款式</div>
+      <p>選了客戶之後，款式下拉只會列出該客戶的款式。</p></div>
+    <div class="step"><div class="step-t">工單號自動產生</div>
+      <p>格式 <code>客戶代號-年份-流水號</code>。年份取<strong>開工日</strong>，不是今天——
+         年底開的單如果排到明年開工，算明年的。你也可以自己改，改過之後系統就不再自動覆蓋。</p></div>
+    <div class="step"><div class="step-t">填期間與目標數量</div>
+      <p>目標數量的單位是<strong>件</strong>，用來算進度百分比。</p></div>
+    <div class="step"><div class="step-t">確認工段與單價</div>
+      <p>款式的工段會自動全部帶入，單價也是。接下來就是這一批要不要調價。</p></div>
+  </div>
+
+  <div class="note">
+    <span class="note-t">同一個款式可以有多張期間重疊的工單</span>
+    <p>急單插隊、同款分兩批談不同價都會這樣，系統允許。每一筆工作量各自記著所屬工單，
+       <strong>進度與工資不會重複計算</strong>。唯一要注意的是輸入工作量時要自己選對是哪一批。</p>
+  </div>
+
+  <h3>單價的三層</h3>
+  <p>工單的每個工段有三個數字：</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>層</th><th>意思</th><th>能不能改</th></tr></thead>
+      <tbody>
+        <tr><td><strong>款式原價</strong></td><td>開單當下從款式抄來的價</td><td>不能。它是歷史的一部分</td></tr>
+        <tr><td><strong>補貼 ＋／−</strong></td><td>這一批多給或少給多少</td><td>可以，只要那個工段還沒結算</td></tr>
+        <tr><td><strong>最後單價</strong></td><td>款式原價 ± 補貼，<strong>實際用來算工資的就是它</strong></td><td>由上面兩個算出來</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">新增工單 — 本工單的工段與單價</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div style="background:#fff;border:1px solid #e2e0da;border-radius:8px;padding:12px">
+          <div class="mk-row" style="background:#f0ede8;border-radius:6px;padding:8px 10px;margin-bottom:10px">
+            <span style="font-size:11px;color:#666">統一補貼</span>
+            <span class="mk-input" style="width:70px;text-align:center;font-family:monospace">+20%</span>
+            <span class="mk-input" style="flex:1;min-width:110px;color:#aaa">補貼原因（選填）</span>
+            <span class="mk-btn mk-btn-g">套用到勾選的工段</span>
+            <span class="mk-btn mk-btn-ghost">全選</span>
+            <span class="mk-btn mk-btn-ghost">清除補貼</span>
+          </div>
+          <table style="width:100%;border-collapse:collapse">
+            <tr>
+              <th class="mk-th" style="width:22px">☐</th><th class="mk-th">工段</th>
+              <th class="mk-th" style="text-align:right">款式原價</th>
+              <th class="mk-th" style="text-align:center">補貼 ＋／−</th>
+              <th class="mk-th" style="text-align:right">最後單價</th><th class="mk-th"></th>
+            </tr>
+            <tr>
+              <td class="mk-td">☐</td>
+              <td class="mk-td"><span style="font-family:monospace;color:#aaa">1</span> 三針拷袖口</td>
+              <td class="mk-td" style="text-align:right;font-family:monospace;color:#888">$12.0</td>
+              <td class="mk-td" style="text-align:center"><span class="mk-input" style="width:64px;text-align:center;font-family:monospace">+20%</span></td>
+              <td class="mk-td" style="text-align:right;font-family:monospace;color:#e07a00;font-weight:700">$14.4</td>
+              <td class="mk-td" style="text-align:center;color:#aaa">🗑️</td>
+            </tr>
+            <tr><td class="mk-td"></td>
+              <td class="mk-td" colspan="5" style="padding-top:0">
+                <span style="font-size:10px;color:#aaa">↳ 補貼原因</span>
+                <span class="mk-input" style="width:180px;font-size:11px">急單加班，客戶同意加價</span></td></tr>
+            <tr>
+              <td class="mk-td">☐</td>
+              <td class="mk-td"><span style="font-family:monospace;color:#aaa">2</span> 接檔底＋側邊
+                <span class="mk-tag" style="background:#f0ede8;color:#666">已記錄 8</span></td>
+              <td class="mk-td" style="text-align:right;font-family:monospace;color:#888">$20.0</td>
+              <td class="mk-td" style="text-align:center"><span class="mk-input" style="width:64px;text-align:center;color:#ccc">—</span></td>
+              <td class="mk-td" style="text-align:right;font-family:monospace;color:#666">$20.0</td>
+              <td class="mk-td" style="text-align:center;color:#ddd">🗑️</td>
+            </tr>
+            <tr style="background:#f7f6f3">
+              <td class="mk-td"></td>
+              <td class="mk-td"><span style="font-family:monospace;color:#aaa">3</span> 合大身
+                <span class="mk-tag" style="background:#fdf0f0;color:#8b2020;border:1px solid #e0b0b0">已結算</span></td>
+              <td class="mk-td" style="text-align:right;font-family:monospace;color:#888">$13.0</td>
+              <td class="mk-td" style="text-align:center"><span class="mk-input" style="width:64px;text-align:center;background:#eee;color:#bbb">+1</span></td>
+              <td class="mk-td" style="text-align:right;font-family:monospace;color:#999">$14.0</td>
+              <td class="mk-td" style="text-align:center;color:#ddd">🗑️</td>
+            </tr>
+          </table>
+          <div class="mk-note">已結算的那一列整列變灰、輸入框鎖住——錢發過了就不能再改價</div>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 三層單價：款式原價（灰）→ 補貼（可填）→ 最後單價（橘色＝有補貼）。有補貼才出現「↳ 補貼原因」</div>
+  </div>
+
+  <h4>補貼怎麼填</h4>
+  <p>補貼欄一律是「增減」，不是「設為」：</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th class="mono">你填</th><th>意思</th><th>原價 $12 會變成</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">10 或 +10</td><td>加 10 元</td><td class="mono">$22.0</td></tr>
+        <tr><td class="mono">-2</td><td>減 2 元</td><td class="mono">$10.0</td></tr>
+        <tr><td class="mono">20% 或 +20%</td><td>加兩成</td><td class="mono">$14.4</td></tr>
+        <tr><td class="mono">-10%</td><td>減一成</td><td class="mono">$10.8</td></tr>
+        <tr><td class="mono">（空白）</td><td>沒有補貼</td><td class="mono">$12.0</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>補貼原因</h4>
+  <p>
+    填了補貼之後，那一列下面會出現「↳ 補貼原因」的輸入欄。寫下為什麼加或減——
+    「急單加班」「布料難車」「客戶指定」。
+  </p>
+  <p>
+    這個欄位會顯示在工單展開的明細與工單列印上。<strong>已結算的工段也可以補寫或更正</strong>，
+    因為它是說明，不是金額。
+  </p>
+
+  <h4>統一補貼</h4>
+  <p>
+    勾選多個工段 → 在「統一補貼」填增減值（可一併填共用的原因）→ 按 <span class="btn-demo p">套用到勾選的工段</span>。
+    原因留白的話，各列原本寫的不會被清掉。
+  </p>
+  <p>旁邊還有三顆：<span class="btn-demo">全選</span>、<span class="btn-demo">全不選</span>、
+     <span class="btn-demo">清除補貼</span>（把所有補貼與原因清空、單價回到款式原價，已結算的工段跳過）。</p>
+
+  <h3>臨時工段</h3>
+  <p>
+    款式沒有、只有這一批要做的工段（例如「加縫商標」），按 <span class="btn-demo">＋ 臨時工段</span> 加。
+    編號會自動接在目前最大編號後面，可以自己改。
+  </p>
+  <p>臨時工段<strong>只存在於這張工單</strong>，不會寫回款式。它填的價就是它的「款式原價」，一樣可以再補貼。</p>
+
+  <h3>工段的三種狀態</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>狀態</th><th>意思</th><th>能改價</th><th>能移除</th></tr></thead>
+      <tbody>
+        <tr><td>無記錄</td><td>還沒有人做</td><td>✓</td><td>✓</td></tr>
+        <tr><td><span class="badge w">已記錄 N</span></td><td>有工作量但還沒結算</td><td>✓ 改了底下記錄的工資跟著變</td><td>✗ 移掉那些記錄會失去歸屬</td></tr>
+        <tr><td><span class="badge d">已結算</span></td><td>錢已經發過了</td><td>✗</td><td>✗</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="warn">
+    <span class="warn-t">已結算的工段要改價，只能另開一張新工單</span>
+    <p>已結算的單價必須跟實際發出去的薪資一致，否則對不上帳。系統會直接擋下來。</p>
+  </div>
+
+  <h3>重新帶入款式單價</h3>
+  <p>
+    把款式目前的工段與單價，覆蓋回這張工單的「款式原價」。已經移除的工段會加回來。
+  </p>
+  <ul>
+    <li><strong>已填的補貼會保留</strong>，並以新的原價重新換算最後單價</li>
+    <li>臨時工段不受影響</li>
+    <li>已結算的工段維持原價，不會被覆蓋</li>
+    <li>款式已被刪除時會提示並中止，不會把工段清空</li>
+  </ul>
+
+  <h3>進度與完工</h3>
+  <p>
+    進度的分子是<strong>所有工段完成數的最小值</strong>——也就是「幾件從頭到尾都做完了」。
+    例如車縫做了 100 件、鎖釦只做了 60 件，完成數就是 60。
+  </p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>狀態</th><th>條件</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge">尚未開始</span></td><td>一筆記錄都沒有</td></tr>
+        <tr><td><span class="badge w">進行中</span></td><td>有記錄，還沒達標，也還沒逾期</td></tr>
+        <tr><td><span class="badge d">逾期</span></td><td>過了結束日還沒完工</td></tr>
+        <tr><td><span class="badge ok">✓ 完工</span></td><td>完成數 ≥ 目標數量</td></tr>
+        <tr><td><span class="badge ok">✓ 手動</span></td><td>你按了「標記完工」（完成數還沒達標，但實際做完了）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>篩選與全部歷史</h3>
+  <p>
+    工單清單預設只顯示<strong>近三個月</strong>的工單，上方四張統計卡（工單數、進行中、已完成、逾期）
+    也跟著篩選條件走。
+  </p>
+  <p>
+    <span class="btn-demo">全部歷史</span> 會清掉日期與狀態限制、列出所有工單，
+    但<strong>保留客戶篩選</strong>——方便看單一客戶從頭到尾做過什麼。
+  </p>
+
+  <h3>列印工單</h3>
+  <p>
+    每張工單可以列印：工單號、客戶、款式、期間、目標數量、每個工段的單價與完成數量、
+    每一筆工作量的日期與員工、補貼原因，以及工單備註。
+  </p>
+
+  <h3>請款狀態</h3>
+  <p>完工的工單，狀態欄旁邊會多一個標記：</p>
+  <ul>
+    <li><span class="badge ok">已請款</span>　已經開過請款單（滑過去可以看單號）</li>
+    <li><span class="badge w">未請款</span>　完工了但還沒開單——<strong>這就是可能漏掉的錢</strong></li>
+  </ul>
+  <p>這個狀態是查出來的，不是存在工單上的。刪掉請款單，工單自動回到未請款。</p>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">工單追蹤</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div class="mk-row" style="gap:10px;margin-bottom:10px">
+          <div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 12px">
+            <div style="font-size:10px;color:#888">工單數</div><div style="font-size:18px;font-weight:700">31 張</div></div>
+          <div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 12px">
+            <div style="font-size:10px;color:#888">進行中</div><div style="font-size:18px;font-weight:700">4 張</div></div>
+          <div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 12px">
+            <div style="font-size:10px;color:#888">已完成</div><div style="font-size:18px;font-weight:700;color:#2d5a3d">26 張</div></div>
+          <div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 12px">
+            <div style="font-size:10px;color:#888">逾期</div><div style="font-size:18px;font-weight:700;color:#8b2020">1 張</div></div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #e2e0da;border-radius:6px">
+          <tr style="background:#f7f6f3">
+            <th class="mk-th">工單號</th><th class="mk-th">款式</th><th class="mk-th">客戶</th>
+            <th class="mk-th">進度</th><th class="mk-th">狀態</th></tr>
+          <tr><td class="mk-td" style="font-family:monospace">▶ TW001-2026-011</td>
+            <td class="mk-td">#5768 外套</td><td class="mk-td">名人泳裝</td>
+            <td class="mk-td"><span style="display:inline-block;width:40px;height:5px;background:#2d5a3d;border-radius:3px;vertical-align:middle"></span>
+              <span style="font-family:monospace;color:#666">399/399 (100%)</span></td>
+            <td class="mk-td"><span class="mk-tag" style="background:#e8f2eb;color:#2d5a3d">✓ 完工</span>
+              <span class="mk-tag" style="background:#e8f2eb;color:#2d5a3d">已請款</span></td></tr>
+          <tr><td class="mk-td" style="font-family:monospace">▶ TW006-2026-020</td>
+            <td class="mk-td">#KL-002 短袖上衣</td><td class="mk-td">克洛斯沃爾</td>
+            <td class="mk-td"><span style="display:inline-block;width:40px;height:5px;background:#2d5a3d;border-radius:3px;vertical-align:middle"></span>
+              <span style="font-family:monospace;color:#666">72/72 (100%)</span></td>
+            <td class="mk-td"><span class="mk-tag" style="background:#e8f2eb;color:#2d5a3d">✓ 完工</span>
+              <span class="mk-tag" style="background:#fdf8e8;color:#7a5c00">未請款</span></td></tr>
+          <tr><td class="mk-td" style="font-family:monospace">▶ TW004-2026-001</td>
+            <td class="mk-td">寵物衣</td><td class="mk-td">晨顥</td>
+            <td class="mk-td"><span style="display:inline-block;width:16px;height:5px;background:#2d5a3d;border-radius:3px;vertical-align:middle"></span>
+              <span style="font-family:monospace;color:#666">45/120 (37%)</span></td>
+            <td class="mk-td"><span class="mk-tag" style="background:#fdf8e8;color:#7a5c00">進行中</span></td></tr>
+        </table>
+        <div class="mk-note">「未請款」＝ 做完了但還沒開請款單，那就是可能漏掉的錢</div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 點工單號那一列可以展開，看到每個工段做了幾件、每一筆是誰做的</div>
+  </div>
+
+  <h3>刪除工單</h3>
+  <p>
+    <strong>底下只要有一筆工作量記錄，就完全不給刪。</strong>
+    系統會列出所有擋下來的記錄（日期、員工、工段、數量、單價、有沒有結算）。
+  </p>
+  <p>要刪的話，得先到「工作量」頁把那些記錄刪掉或改到其他工單。</p>
+</section>
+
+<!-- ══════════ 5 請款單 ══════════ -->
+<section id="invoice">
+  <h2>5　請款單</h2>
+  <p class="sec-lead">對客戶請款。可以獨立開，也可以從完工的工單直接產生。</p>
+
+  <h3>兩條建立路徑</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th></th><th>什麼時候用</th><th>怎麼開</th></tr></thead>
+      <tbody>
+        <tr><td><strong>獨立建</strong></td><td>雜項、樣品、加工費，或不想綁工單</td>
+            <td><span class="btn-demo p">＋ 新增請款單</span> → 自己選客戶、加品項</td></tr>
+        <tr><td><strong>從工單建立</strong></td><td>一批貨做完了要請款</td>
+            <td><span class="btn-demo">📋 從工單建立</span> → 選一張完工工單</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>品項是自己打的，不是選款式</h3>
+  <p>
+    請款單上那一欄叫<strong>品項</strong>，是一格自由輸入的文字，不是款式下拉。
+    因為你要跟客戶收的錢不一定對得上某個款式——運費、樣品費、打樣費、加工費、重工費、代購材料，
+    這些款式主檔裡根本沒有。打字時系統會提示幾個常用的，但你想打什麼都可以。
+  </p>
+  <div class="note">
+    <span class="note-t">請款單抄下來就凍結</span>
+    <p>
+      品項名是存在請款單自己身上的文字。之後款式改名、甚至被永久刪除，
+      已經開出去的請款單一個字都不會變。
+    </p>
+  </div>
+
+  <h3>從工單建立</h3>
+  <p>清單只列出<strong>已完工、而且還沒開過請款單</strong>的工單。上方有搜尋框，
+     可以打工單號、客戶或款式的任何一段來找（例如 <code>2026-010</code>、<code>泳裝</code>、<code>OA-2601</code>）。</p>
+  <p>選一張之後，系統會帶入客戶（含統一編號、聯絡人、電話）與第一列品項，而且<strong>鎖住不給改</strong>：</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>欄位</th><th></th><th>為什麼</th></tr></thead>
+      <tbody>
+        <tr><td>客戶</td><td><span class="badge d">鎖定</span></td><td>工單抄下來的，改掉抬頭就跟來源工單對不起來</td></tr>
+        <tr><td>第一列品項</td><td><span class="badge d">鎖定</span></td><td>同上，這一列也沒有刪除鈕</td></tr>
+        <tr><td>數量</td><td><span class="badge d">鎖定</span></td><td>工單的完成件數是既成事實</td></tr>
+        <tr><td><strong>單價</strong></td><td><span class="badge ok">要你填</span></td><td>這是你跟客戶談的成交價，工單上本來就沒有</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>要改這些鎖住的欄位，表示這張單開錯了——取消重開，而不是就地改成別的東西。</p>
+
+  <div class="warn">
+    <span class="warn-t">單價不會自動帶，這是刻意的</span>
+    <p>
+      工單上的單價是<strong>你付給員工的計件工資</strong>，請款單上的單價是<strong>客戶付給你的成交價</strong>——
+      這是兩筆完全不同的錢，中間的差額才是你的毛利。系統不會拿工資去推算售價，也不該猜。
+    </p>
+  </div>
+
+  <p>帶入之後你可以再按「＋ 新增列」加品項（運費、加工費等），一張請款單上可以混。後面加的列都能自由編輯與刪除。</p>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">從工單建立請款單</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div class="mk-modal" style="max-width:none">
+          <div class="mk-modal-title">從工單建立請款單</div>
+          <div style="font-size:11px;color:#888;margin-bottom:8px">
+            只列出<strong>已完工、且還沒開過請款單</strong>的工單</div>
+          <div class="mk-select" style="width:100%;box-sizing:border-box;color:#aaa;margin-bottom:8px">🔍 搜尋工單號、客戶、款式...</div>
+          <table style="width:100%;border-collapse:collapse;border:1px solid #e2e0da">
+            <tr style="background:#f7f6f3">
+              <th class="mk-th">工單號</th><th class="mk-th">客戶／款式</th>
+              <th class="mk-th">期間</th><th class="mk-th" style="text-align:right">完成</th><th class="mk-th"></th></tr>
+            <tr><td class="mk-td" style="font-family:monospace">TW001-2026-001</td>
+              <td class="mk-td">名人泳裝<br><span style="color:#888">#5416 泳裝</span></td>
+              <td class="mk-td" style="color:#888;font-size:10px">06/01 ～ 06/30</td>
+              <td class="mk-td" style="text-align:right;font-family:monospace">120 <span style="color:#aaa">件</span></td>
+              <td class="mk-td" style="text-align:right"><span class="mk-btn mk-btn-g">建立</span></td></tr>
+          </table>
+          <hr class="mk-divider">
+          <div style="font-size:11px;color:#666;background:#f0ede8;border-radius:5px;padding:7px 10px;margin-bottom:8px">
+            來自工單 <strong style="font-family:monospace">TW001-2026-001</strong>　#5416 泳裝　完成 <strong>120</strong> 件
+            <span style="color:#999">　·　單價請自行填寫，系統不會從工資推算</span></div>
+          <table style="width:100%;border-collapse:collapse">
+            <tr><th class="mk-th">品項</th><th class="mk-th" style="text-align:right">單價</th>
+                <th class="mk-th" style="text-align:right">數量</th><th class="mk-th" style="text-align:right">小計</th><th class="mk-th"></th></tr>
+            <tr><td class="mk-td" style="color:#999">#5416 泳裝　<span style="font-size:9px">🔒</span></td>
+              <td class="mk-td" style="text-align:right"><span class="mk-input" style="width:56px;text-align:right;border-color:#e07a00">　</span></td>
+              <td class="mk-td" style="text-align:right;color:#999;font-family:monospace">120　<span style="font-size:9px">🔒</span></td>
+              <td class="mk-td" style="text-align:right;font-family:monospace;color:#2d5a3d">$0.0</td>
+              <td class="mk-td"></td></tr>
+            <tr><td class="mk-td"><span class="mk-input" style="width:70px;text-align:left;color:#aaa">運費</span></td>
+              <td class="mk-td" style="text-align:right"><span class="mk-input" style="width:56px;text-align:right;font-family:monospace">1200</span></td>
+              <td class="mk-td" style="text-align:right"><span class="mk-input" style="width:48px;text-align:right;font-family:monospace">1</span></td>
+              <td class="mk-td" style="text-align:right;font-family:monospace;color:#2d5a3d">$1200.0</td>
+              <td class="mk-td" style="text-align:right;color:#8b2020">🗑️</td></tr>
+          </table>
+          <div class="mk-note">🔒 的兩格是工單抄來的事實，改不了也刪不掉。這一列只要填單價；下面自己加的列才能自由編輯</div>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 客戶、品項、數量鎖定，只剩單價要填。下面可以再加運費之類的品項</div>
+  </div>
+
+  <h3>一張工單只能開一張請款單</h3>
+  <p>不支援分批請款，也不支援一張請款單跨多張工單。開過之後那張工單就從「從工單建立」的清單消失。</p>
+
+  <h3>其他欄位</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td>請款編號</td><td>自動產生（年份＋週次－序號），可自己改，不能重複</td></tr>
+        <tr><td>開單日期／付款日期</td><td>付款日期預設是開單日 +30 天</td></tr>
+        <tr><td>發票號碼</td><td>選填</td></tr>
+        <tr><td>發件人資料</td><td>必選。選了之後右邊會直接把地址、電話、匯款資訊攤開，就是會印在單子上的內容</td></tr>
+        <tr><td>5% 稅金</td><td>勾了會在總計加上營業稅</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>發件人資料</h3>
+  <p>
+    右上角 <span class="btn-demo">⚙ 發件人資料</span> 維護公司抬頭、地址、電話、Email 與匯款帳號。
+    左邊是清單、右邊是表單，<strong>點清單任何一列就在右邊編輯</strong>。
+  </p>
+  <div class="note">
+    <span class="note-t">改公司資料不會動到已經開出去的單</span>
+    <p>
+      每張請款單在開單當下就把發件人整份抄了一份存起來。所以你之後搬家改地址、換銀行帳號，
+      甚至把整個發件人刪掉，<strong>舊的請款單重新列印出來還是當初寄給客戶的那一份</strong>。
+      要讓某張舊單換成新資料，就進去編輯它、重新挑一次發件人。
+    </p>
+  </div>
+
+  <h3>到帳管理</h3>
+  <p>
+    列表上按 <span class="btn-demo">到帳</span> 標記已收款。已到帳的請款單<strong>不能再編輯</strong>，
+    要改的話先按「取消」把到帳狀態拿掉。
+  </p>
+  <p>上方統計卡會顯示請款總額、已到帳、未到帳與到帳率，跟著篩選條件走。</p>
+
+  <h3>找單子</h3>
+  <p>
+    篩選器預設是<strong>近三個月</strong>（往前推兩個月的 1 號到今天）。要看更早的，
+    改日期，或直接按 <span class="btn-demo">全部歷史</span> 把日期清空、列出從第一張到現在的全部。
+    <span class="btn-demo">清除</span> 則是回到近三個月的預設。
+  </p>
+  <p>
+    列表上「客戶」後面有一欄<strong>工單</strong>：從工單開的單會顯示工單號，
+    <strong>點下去直接跳到工單追蹤</strong>並展開那一張。獨立開的單這一欄是空的（顯示「—」），
+    來源工單被刪掉的會顯示「工單已刪除」。
+  </p>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">請款單</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:100px;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 10px">
+            <div class="mk-label">請款總額</div><div style="font-family:monospace;font-size:15px;font-weight:700">$486,300</div></div>
+          <div style="flex:1;min-width:100px;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 10px">
+            <div class="mk-label">已到帳</div><div style="font-family:monospace;font-size:15px;font-weight:700;color:#2d5a3d">$312,000</div></div>
+          <div style="flex:1;min-width:100px;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 10px">
+            <div class="mk-label">未到帳</div><div style="font-family:monospace;font-size:15px;font-weight:700;color:#8b2020">$174,300</div></div>
+          <div style="flex:1;min-width:100px;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 10px">
+            <div class="mk-label">到帳率</div><div style="font-family:monospace;font-size:15px;font-weight:700">64.2%</div></div>
+        </div>
+        <div class="mk-filter-bar" style="padding:8px 12px;margin-bottom:8px">
+          <div class="mk-filter-item"><div class="mk-label">客戶</div><div class="mk-select">全部</div></div>
+          <div class="mk-filter-item"><div class="mk-label">開始日期從</div><div class="mk-select">2026-06-01</div></div>
+          <div class="mk-filter-item"><div class="mk-label">至</div><div class="mk-select">2026-08-17</div></div>
+          <div class="mk-filter-item"><div class="mk-label">狀態</div><div class="mk-select">全部</div></div>
+          <div class="mk-filter-item"><span class="mk-btn mk-btn-ghost">清除</span> <span class="mk-btn mk-btn-ghost">全部歷史</span></div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #e2e0da">
+          <tr style="background:#f7f6f3">
+            <th class="mk-th">編號</th><th class="mk-th">客戶</th><th class="mk-th">工單</th>
+            <th class="mk-th" style="text-align:right">開單日</th>
+            <th class="mk-th" style="text-align:right">付款日</th>
+            <th class="mk-th" style="text-align:right">金額</th>
+            <th class="mk-th">狀態</th><th class="mk-th"></th></tr>
+          <tr>
+            <td class="mk-td" style="font-family:monospace">2026W24-01</td>
+            <td class="mk-td">名人泳裝</td>
+            <td class="mk-td" style="font-family:monospace;font-size:10px;color:#2d5a3d;text-decoration:underline">TW001-2026-001</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace;font-size:10px">06/12</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace;font-size:10px">07/12</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace;font-weight:700">$186,900</td>
+            <td class="mk-td"><span class="mk-tag" style="background:#e8f2eb;color:#2d5a3d">已到帳</span></td>
+            <td class="mk-td" style="text-align:right"><span class="mk-btn mk-btn-ghost">取消</span> <span class="mk-btn mk-btn-ghost">🖨</span></td></tr>
+          <tr>
+            <td class="mk-td" style="font-family:monospace">2026W25-01</td>
+            <td class="mk-td">佳美服飾</td>
+            <td class="mk-td" style="color:#bbb">—</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace;font-size:10px">06/18</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace;font-size:10px">07/18</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace;font-weight:700">$174,300</td>
+            <td class="mk-td"><span class="mk-tag" style="background:#fdf0f0;color:#8b2020">未到帳</span></td>
+            <td class="mk-td" style="text-align:right"><span class="mk-btn mk-btn-success">到帳</span> <span class="mk-btn mk-btn-ghost">✏️</span> <span class="mk-btn mk-btn-ghost">🖨</span></td></tr>
+        </table>
+        <div class="mk-note">工單欄點下去跳到工單追蹤；獨立開的單顯示「—」。已到帳的那一列沒有編輯鈕，要改先按「取消」</div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 上方四張統計卡跟著篩選條件走，不是全部資料的總和</div>
+  </div>
+</section>
+
+<!-- ══════════ 6 員工管理 ══════════ -->
+<section id="emp">
+  <h2>6　員工管理</h2>
+  <p class="sec-lead">員工資料、常用任務、標籤與保險設定。</p>
+
+  <h3>新增員工</h3>
+  <p>員工編號自動指派（接續目前最大號），可以自己改。姓名不能與現有在職員工重複。</p>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">員工管理</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div class="mk-row" style="justify-content:space-between">
+          <div style="font-size:13px;font-weight:700">在職員工　8 人</div>
+          <div><span class="mk-btn mk-btn-ghost">🏷 標籤管理</span> <span class="mk-btn mk-btn-g">＋ 新增員工</span></div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #e2e0da;margin-top:8px">
+          <tr style="background:#f7f6f3">
+            <th class="mk-th">編號</th><th class="mk-th">姓名</th><th class="mk-th">標籤</th>
+            <th class="mk-th">健保</th><th class="mk-th">勞保</th>
+            <th class="mk-th" style="text-align:center">自提6%</th>
+            <th class="mk-th" style="text-align:center">扣稅5%</th>
+            <th class="mk-th">常用任務</th><th class="mk-th"></th></tr>
+          <tr>
+            <td class="mk-td" style="font-family:monospace">#1</td>
+            <td class="mk-td" style="font-weight:700">王小明</td>
+            <td class="mk-td"><span class="mk-tag" style="background:#e8f2eb;color:#2d5a3d">早班</span></td>
+            <td class="mk-td">第一類 $1,377</td><td class="mk-td">一般 $1,088</td>
+            <td class="mk-td" style="text-align:center;color:#2d5a3d">✔</td>
+            <td class="mk-td" style="text-align:center;color:#ccc">—</td>
+            <td class="mk-td" style="color:#666">6 項</td>
+            <td class="mk-td" style="text-align:right;color:#aaa">✏️ 🗑️</td></tr>
+          <tr>
+            <td class="mk-td" style="font-family:monospace">#2</td>
+            <td class="mk-td" style="font-weight:700">李小華</td>
+            <td class="mk-td"><span class="mk-tag" style="background:#fff3e0;color:#8b6020">外包</span></td>
+            <td class="mk-td" style="color:#bbb">未設定</td><td class="mk-td" style="color:#bbb">未設定</td>
+            <td class="mk-td" style="text-align:center;color:#ccc">—</td>
+            <td class="mk-td" style="text-align:center;color:#2d5a3d">✔</td>
+            <td class="mk-td" style="color:#666">2 項</td>
+            <td class="mk-td" style="text-align:right;color:#aaa">✏️ 🗑️</td></tr>
+          <tr>
+            <td class="mk-td" style="font-family:monospace;color:#aaa">#5</td>
+            <td class="mk-td" style="color:#aaa">已刪除員工 (陳阿姨)</td>
+            <td class="mk-td" colspan="6" style="color:#aaa;font-size:10px">在刪除區域，舊記錄仍完整保留，可還原</td></tr>
+        </table>
+        <div class="mk-note">刪掉的員工不會從舊記錄上消失，只是名字改成「已刪除員工 (姓名)」</div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 保險與扣繳直接在列表上設定，薪資計算時自動套用</div>
+  </div>
+
+  <h3>常用任務</h3>
+  <p>
+    某個員工固定做哪些款式的哪些工段。設定之後，批次輸入工作量時可以用它<strong>快速篩選</strong>——
+    一張工單可能有二十幾個工段，用常用任務篩過就只剩他做的那幾個。
+  </p>
+  <p>常用任務依「客戶 → 款式 → 工段」分組顯示。對應的客戶、款式或工段被刪除時會自動清掉。</p>
+
+  <h3>標籤</h3>
+  <p>
+    右上角 <span class="btn-demo">標籤管理</span> 建立標籤（名稱＋顏色，共 10 色可選），
+    再到各員工那一列指派。用來分類，例如「早班」「外包」「試用期」。
+  </p>
+  <p>刪除標籤時，已指派給員工的會一併移除。</p>
+
+  <h3>保險與扣繳設定</h3>
+  <p>每個員工可設定健保種類、勞保種類、是否自提 6% 勞退、是否扣所得稅 5%。這些會在薪資計算時自動套用。</p>
+
+  <h3>刪除員工</h3>
+  <p>
+    一般刪除後，姓名在舊記錄上顯示為「已刪除員工 (姓名)」，資料完整保留、可以還原。
+  </p>
+  <div class="warn">
+    <span class="warn-t">永久刪除員工會被擋下來</span>
+    <p>
+      只要還有工作量記錄、薪資單、月薪設定或常用任務指向這個員工，就不能永久刪除。
+      硬刪的話那些資料會找不到主人——<strong>薪資單會直接從畫面上消失，而且再也刪不掉</strong>。
+    </p>
+  </div>
+</section>
+
+<!-- ══════════ 7 工作量 ══════════ -->
+<section id="rec">
+  <h2>7　工作量</h2>
+  <p class="sec-lead">記錄誰在哪一天、替哪張工單的哪個工段、做了多少件。錢就是從這裡算出來的。</p>
+
+  <h3>批次輸入</h3>
+  <p>右上角 <span class="btn-demo p">＋ 批次輸入工作量</span>。這是一個表格：直向是日期，橫向是工段，格子裡填件數。</p>
+
+  <div class="steps">
+    <div class="step"><div class="step-t">選員工</div>
+      <p>選定之後，下方「依工單加入」會展開。</p></div>
+    <div class="step"><div class="step-t">依工單加入工段</div>
+      <p>選一張工單 → 勾要輸入的工段 → 加入。可以同時加入<strong>多張工單</strong>的工段，
+         每一欄下方都會標示是哪張工單，避免搞混。</p></div>
+    <div class="step"><div class="step-t">用常用任務篩選</div>
+      <p>工單工段太多時，勾「只顯示常用任務」，就只剩這個員工固定做的那幾個。</p></div>
+    <div class="step"><div class="step-t">選日期範圍</div>
+      <p>選開始與結束日，表格就會長出那幾天的列。</p></div>
+    <div class="step"><div class="step-t">填數量並儲存</div>
+      <p>格子裡填件數。留空＝不動，填 <code>0</code> 或 <code>-</code>＝刪除那一筆。</p></div>
+  </div>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">批次輸入工作量</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div class="mk-row" style="margin-bottom:10px">
+          <span class="mk-label" style="margin:0">員工</span>
+          <span class="mk-select active" style="width:110px">#1 小明</span>
+          <span class="mk-label" style="margin:0 0 0 8px">期間</span>
+          <span class="mk-input" style="width:96px;font-family:monospace">2026/06/10</span>
+          <span style="color:#888">～</span>
+          <span class="mk-input" style="width:96px;font-family:monospace">2026/06/12</span>
+          <span class="mk-btn mk-btn-ghost">☑ 只顯示常用任務</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #ddd">
+          <tr style="background:#f7f6f3">
+            <th class="mk-th" style="width:26px"></th>
+            <th class="mk-th" style="width:150px">款式／工段</th>
+            <th class="mk-th" style="text-align:center">06/10</th>
+            <th class="mk-th" style="text-align:center">06/11</th>
+            <th class="mk-th" style="text-align:center;background:#fdf3f3">06/12<br><span style="font-weight:400">日</span></th>
+          </tr>
+          <tr>
+            <td class="mk-td" style="text-align:center;color:#bbb">✕</td>
+            <td class="mk-td"><strong style="font-size:11px">#5416 泳裝</strong><br>
+              <span style="color:#666">1. 三針拷袖口</span><br>
+              <span style="font-family:monospace;font-size:9px;color:#aaa">TW001-2026-001</span></td>
+            <td style="padding:2px"><div class="mk-cell has">100</div></td>
+            <td style="padding:2px"><div class="mk-cell">　</div></td>
+            <td style="padding:2px"><div class="mk-cell">　</div></td>
+          </tr>
+          <tr>
+            <td class="mk-td" style="text-align:center;color:#bbb">✕</td>
+            <td class="mk-td"><strong style="font-size:11px">#5416 泳裝</strong><br>
+              <span style="color:#666">2. 接檔底＋側邊</span><br>
+              <span style="font-family:monospace;font-size:9px;color:#aaa">TW001-2026-001</span></td>
+            <td style="padding:2px"><div class="mk-cell lock">80</div></td>
+            <td style="padding:2px"><div class="mk-cell">　</div></td>
+            <td style="padding:2px"><div class="mk-cell">　</div></td>
+          </tr>
+        </table>
+        <div class="mk-row" style="justify-content:flex-end;margin-top:10px">
+          <span class="mk-btn mk-btn-ghost">取消</span>
+          <span class="mk-btn mk-btn-g">確認（新增 1、修改 1）</span>
+        </div>
+        <div class="mk-note">綠底＝已經有記錄　灰底＝已結算改不了　空白＝不動　填 0 或 - ＝刪除</div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 直向是日期、橫向是工段。每一欄下方標著工單號，重疊工單才分得出來是哪一批</div>
+  </div>
+
+  <div class="note">
+    <span class="note-t">格子會自己變色</span>
+    <p>
+      已經有記錄的格子會標示出來；已結算的格子是鎖住的、改不了；
+      日期落在該工單期間之外的格子不接受輸入。
+    </p>
+  </div>
+
+  <h3>表格操作</h3>
+  <h4>欄位開關</h4>
+  <p>
+    <span class="btn-demo">欄位 ▾</span> 可以逐欄開關。關掉的欄位空間會由其他欄收回，不會留下空白。
+    「單價」與「新增時間」預設是關的。選單底部有 <span class="btn-demo">全部顯示</span> 與
+    <span class="btn-demo">還原預設</span>。
+  </p>
+  <p>設定會記在這台電腦上，下次打開還是你調的樣子。</p>
+
+  <h4>調整欄寬</h4>
+  <ul>
+    <li><strong>拖曳</strong>欄位分隔線調寬窄。只會影響右邊的欄位，左邊不動</li>
+    <li><strong>雙擊</strong>分隔線自動貼合內容寬度</li>
+    <li>調過之後右上角會出現「還原欄寬」</li>
+  </ul>
+
+  <h4>排序</h4>
+  <p>點欄位標題排序，再點一次反向。日期、員工、工單、客戶、款式、工段、單價、數量、新增時間都可以排。</p>
+
+  <h3>單價怎麼顯示</h3>
+  <p>有補貼的時候會顯示兩層：上排是最後單價，下排是「原價 +補貼」。</p>
+  <p>例如 <code>$14.4</code> 底下標 <code>$12.0 +2.4</code>。沒有補貼就只顯示一個數字。</p>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">工作量</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #e2e0da">
+          <tr style="background:#f7f6f3">
+            <th class="mk-th">日期</th><th class="mk-th">員工</th><th class="mk-th">工單</th>
+            <th class="mk-th">客戶</th><th class="mk-th">款式</th><th class="mk-th">工段</th>
+            <th class="mk-th" style="text-align:right">單價/打</th>
+            <th class="mk-th" style="text-align:right">數量</th><th class="mk-th"></th></tr>
+          <tr>
+            <td class="mk-td">2026/06/10</td><td class="mk-td">#1 小明</td>
+            <td class="mk-td" style="font-family:monospace;font-size:10px">TW001-2026-001</td>
+            <td class="mk-td">名人泳裝</td><td class="mk-td">#5416 泳裝</td>
+            <td class="mk-td"><span style="font-family:monospace;color:#aaa">1.</span> 三針拷袖口</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace;line-height:1.35">
+              <div style="font-weight:700;color:#e07a00">$14.4</div>
+              <div style="font-size:9px;color:#999">$12.0 <span style="color:#e07a00">+2.4</span></div></td>
+            <td class="mk-td" style="text-align:right;font-family:monospace">100</td>
+            <td class="mk-td" style="text-align:right;color:#aaa">✏️ 🗑️</td></tr>
+          <tr>
+            <td class="mk-td">2026/06/10</td><td class="mk-td">#1 小明</td>
+            <td class="mk-td" style="font-family:monospace;font-size:10px">TW001-2026-001</td>
+            <td class="mk-td">名人泳裝</td><td class="mk-td">#5416 泳裝</td>
+            <td class="mk-td"><span style="font-family:monospace;color:#aaa">2.</span> 接檔底＋側邊</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace;color:#666">$20.0</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace">80</td>
+            <td class="mk-td" style="text-align:right;font-size:10px;color:#8b2020">已結算</td></tr>
+        </table>
+        <div class="mk-note">有補貼才顯示兩層：上面是實際算工資的價，下面是「原價 +補貼」</div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 已結算的那一列沒有編輯與刪除鈕，只顯示「已結算」</div>
+  </div>
+
+  <h3>編輯與刪除</h3>
+  <p>
+    編輯只能改<strong>日期與數量</strong>。單價是由工單決定的，要改價請到「工單追蹤」編輯那張工單。
+  </p>
+  <p>已結算的記錄不能改也不能刪。要改的話得先到「薪資計算」把那個員工那個月的薪資單刪掉（＝解鎖）。</p>
+
+  <h3>匯出</h3>
+  <p>
+    <span class="btn-demo p">📥 匯出工資</span>（工作量頁與工資頁都有）可依日期、員工、客戶篩選，
+    輸出 CSV（Excel 可開）。可選擇<strong>依日期平鋪</strong>或<strong>依員工分組</strong>（含每人小計），
+    也可以決定要不要輸出客戶欄。檔名會自動帶期間與員工名。
+  </p>
+</section>
+
+<!-- ══════════ 8 工資 ══════════ -->
+<section id="wage">
+  <h2>8　工資</h2>
+  <p class="sec-lead">計件工資的明細，依「員工 → 客戶 → 款式」三層分組。</p>
+
+  <p>
+    這一頁是唯讀的檢視，用來對帳。上方選<strong>月份</strong>，
+    <span class="btn-demo">全部展開</span> / <span class="btn-demo">全部收合</span> 一次開關所有分組，
+    展開後可以看到每一筆記錄的日期、工段、單價與小計。
+  </p>
+  <p>
+    要依員工或客戶篩選，請到「工作量」頁——那裡有完整的篩選器。
+    這一頁的用途是<strong>把一整個月的工資依人分組攤開來對帳</strong>。
+  </p>
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">工資</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div class="mk-row" style="justify-content:space-between">
+          <div class="mk-row" style="margin:0">
+            <div class="mk-filter-item"><div class="mk-label">月份</div><div class="mk-select active">2026-06</div></div>
+            <span class="mk-btn mk-btn-ghost">全部展開</span>
+            <span class="mk-btn mk-btn-ghost">全部收合</span>
+          </div>
+          <span class="mk-btn mk-btn-g">📥 匯出工資</span>
+        </div>
+
+        <div class="mk-acc" style="margin-top:10px">
+          <div class="mk-acc-hdr"><span>▾ #1 王小明</span><span class="mk-amount" style="color:#fff">$18,432.0</span></div>
+          <div class="mk-acc-sub"><span>▾ 名人泳裝</span><span>$14,208.0</span></div>
+          <div class="mk-acc-sub" style="background:#2b2a26;padding-left:40px"><span>▾ #5416 泳裝</span><span>$14,208.0</span></div>
+          <div class="mk-acc-body">
+            <table class="mk-table">
+              <tr><th>日期</th><th>工段</th><th style="text-align:right">單價/打</th><th style="text-align:right">件數</th><th style="text-align:right">小計</th></tr>
+              <tr><td>06/10</td><td>1. 三針拷袖口</td>
+                  <td style="text-align:right;font-family:monospace;color:#e07a00">$14.4</td>
+                  <td style="text-align:right;font-family:monospace">100</td>
+                  <td style="text-align:right" class="mk-amount">$120.0</td></tr>
+              <tr><td>06/10</td><td>2. 接檔底＋側邊</td>
+                  <td style="text-align:right;font-family:monospace">$20.0</td>
+                  <td style="text-align:right;font-family:monospace">80</td>
+                  <td style="text-align:right" class="mk-amount">$133.3</td></tr>
+              <tr><td>06/11</td><td>3. 車鬆緊帶</td>
+                  <td style="text-align:right;font-family:monospace">$18.0</td>
+                  <td style="text-align:right;font-family:monospace">120</td>
+                  <td style="text-align:right" class="mk-amount">$180.0</td></tr>
+            </table>
+          </div>
+          <div class="mk-acc-sub"><span>▸ 佳美服飾</span><span>$4,224.0</span></div>
+        </div>
+        <div class="mk-acc">
+          <div class="mk-acc-hdr"><span>▸ #2 李小華</span><span class="mk-amount" style="color:#fff">$12,050.0</span></div>
+        </div>
+        <div class="mk-note">小計＝件數 ÷ 12 × 單價，四捨五入到小數一位（單價是「元／打」）</div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 三層分組：員工（綠）→ 客戶（深）→ 款式，最底層才是每一筆記錄</div>
+  </div>
+
+  <p>右上角 <span class="btn-demo p">📥 匯出工資</span> 輸出 CSV，內容與工作量頁的匯出相同。</p>
+
+  <h3>列印工作紀錄單</h3>
+  <p>
+    「列印」會產生給員工看的<strong>出席工作紀錄單</strong>，一人一頁，列出期間內每一筆的日期、款式、工段、數量、單價與小計。
+    可選擇要不要顯示客戶名稱。
+  </p>
+</section>
+
+<!-- ══════════ 9 月薪 ══════════ -->
+<section id="msalary">
+  <h2>9　月薪</h2>
+  <p class="sec-lead">底薪設定。用「從哪個月起生效」的方式記錄，所以調薪歷史會完整留著。</p>
+
+  <h3>新增月薪</h3>
+  <p>選員工、填金額、選<strong>生效月份</strong>。</p>
+
+  <h3>調薪</h3>
+  <p>調薪不是去改舊的那一筆，而是<strong>新增一筆</strong>。例如：</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>生效月份</th><th>金額</th><th>適用範圍</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">2026-01</td><td class="mono">$26,000</td><td>2026 年 1 月 ～ 4 月</td></tr>
+        <tr><td class="mono">2026-05</td><td class="mono">$28,000</td><td>2026 年 5 月起</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>系統算某個月的月薪時，會取「生效月份 ≤ 該月」之中最新的那一筆。</p>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">月薪</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div class="mk-row" style="justify-content:space-between">
+          <div style="font-size:13px;font-weight:700">#1 王小明</div>
+          <span class="mk-btn mk-btn-ghost">調整薪資</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #e2e0da;margin-top:8px">
+          <tr style="background:#f7f6f3">
+            <th class="mk-th">生效月份</th><th class="mk-th" style="text-align:right">月薪</th>
+            <th class="mk-th">適用範圍</th><th class="mk-th"></th></tr>
+          <tr style="background:#e8f2eb">
+            <td class="mk-td" style="font-family:monospace;font-weight:700;color:#2d5a3d">2026-05</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace;font-weight:700;color:#2d5a3d">$28,000</td>
+            <td class="mk-td" style="color:#2d5a3d">2026/05 起　<span class="mk-tag" style="background:#2d5a3d;color:#fff">目前生效</span></td>
+            <td class="mk-td" style="text-align:right;color:#aaa">✏️ 🗑️</td></tr>
+          <tr>
+            <td class="mk-td" style="font-family:monospace">2026-01</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace">$26,000</td>
+            <td class="mk-td" style="color:#666">2026/01 ～ 2026/04</td>
+            <td class="mk-td" style="text-align:right;color:#aaa">✏️ 🗑️</td></tr>
+          <tr>
+            <td class="mk-td" style="font-family:monospace">2025-03</td>
+            <td class="mk-td" style="text-align:right;font-family:monospace">$24,000</td>
+            <td class="mk-td" style="color:#666">2025/03 ～ 2025/12</td>
+            <td class="mk-td" style="text-align:right;color:#aaa">✏️ 🗑️</td></tr>
+        </table>
+        <div class="mk-note">調薪是「再加一筆」，不是去改舊的。舊的留著，歷史才查得到</div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 每一筆記「從哪個月起生效」，系統自己算適用範圍</div>
+  </div>
+
+  <h3>快速調薪</h3>
+  <p>
+    員工那一列的 <span class="btn-demo">調整薪資</span> 會展開一個小面板，
+    填新金額與生效月份就好，不用開完整的新增視窗。
+  </p>
+
+  <h3>刪除月薪紀錄</h3>
+  <p>
+    刪除時系統會告訴你影響範圍，例如「2026-05 之後的月份會改用 2026-01 那筆（$26,000）」。
+    <strong>已經結算的薪資單存了當月月薪的快照，金額不會變動。</strong>
+  </p>
+</section>
+
+<!-- ══════════ 10 勞健保 ══════════ -->
+<section id="ins">
+  <h2>10　勞健保</h2>
+  <p class="sec-lead">先建立保險種類，再指派給員工。</p>
+
+  <div class="steps">
+    <div class="step"><div class="step-t">建立保險種類</div>
+      <p>分健保與勞保兩類。每一種填名稱與月費；勞保還可以填投保薪資（自提 6% 勞退會用到）。</p></div>
+    <div class="step"><div class="step-t">為員工指派</div>
+      <p>在員工投保表上，逐一選擇每個員工的健保與勞保種類，並勾選是否自提勞退。</p></div>
+  </div>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">勞健保</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div class="mk-step-flow">
+          <div class="mk-step-box">
+            <div style="font-weight:700;margin-bottom:6px">① 保險種類</div>
+            <table class="mk-table" style="margin-top:0">
+              <tr><th>健保</th><th style="text-align:right">月費</th></tr>
+              <tr><td>第一類</td><td style="text-align:right;font-family:monospace">$1,377</td></tr>
+              <tr><td>眷屬 1 口</td><td style="text-align:right;font-family:monospace">$2,754</td></tr>
+            </table>
+            <table class="mk-table">
+              <tr><th>勞保</th><th style="text-align:right">月費</th><th style="text-align:right">投保薪資</th></tr>
+              <tr><td>一般</td><td style="text-align:right;font-family:monospace">$1,088</td><td style="text-align:right;font-family:monospace">$28,800</td></tr>
+            </table>
+          </div>
+          <div class="mk-step-arrow">→</div>
+          <div class="mk-step-box">
+            <div style="font-weight:700;margin-bottom:6px">② 員工投保表</div>
+            <table class="mk-table" style="margin-top:0">
+              <tr><th>員工</th><th>健保</th><th>勞保</th><th style="text-align:center">自提6%</th></tr>
+              <tr><td>#1 王小明</td><td><span class="mk-select" style="min-width:0;padding:2px 6px;font-size:10px">第一類</span></td>
+                  <td><span class="mk-select" style="min-width:0;padding:2px 6px;font-size:10px">一般</span></td>
+                  <td style="text-align:center;color:#2d5a3d">☑</td></tr>
+              <tr><td>#2 李小華</td><td><span class="mk-select" style="min-width:0;padding:2px 6px;font-size:10px;color:#aaa">未設定</span></td>
+                  <td><span class="mk-select" style="min-width:0;padding:2px 6px;font-size:10px;color:#aaa">未設定</span></td>
+                  <td style="text-align:center;color:#ccc">☐</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="mk-note">投保薪資只有勞保要填，計算自提 6% 勞退時會用到</div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 先建種類、再指派給人。指派好之後，薪資計算的扣項會自動帶入</div>
+  </div>
+
+  <p>刪除保險種類時，已指派給員工的設定會一併清除。</p>
+</section>
+
+<!-- ══════════ 11 薪資計算 ══════════ -->
+<section id="salary">
+  <h2>11　薪資計算</h2>
+  <p class="sec-lead">把計件工資、月薪、加項、扣項合起來，算出這個月實際要發多少。</p>
+
+  <h3>費率設定</h3>
+  <p>右上角「費率設定」設定伙食費率、加班費率與獎金選項。這些是全公司共用的預設值。</p>
+
+  <h3>建立薪資計算</h3>
+  <div class="steps">
+    <div class="step"><div class="step-t">選年月</div>
+      <p>表格會列出所有員工在該月的狀態。</p></div>
+    <div class="step"><div class="step-t">逐一結算</div>
+      <p>點員工那一列的 <span class="btn-demo p">＋</span> 開啟結算視窗。</p></div>
+    <div class="step"><div class="step-t">確認金額</div>
+      <p>計件工資與月薪會自動帶入，你填加項與扣項。實發金額即時試算。</p></div>
+    <div class="step"><div class="step-t">儲存</div>
+      <p>存檔之後，<strong>那個員工那個月的所有工作量就鎖住了</strong>。</p></div>
+  </div>
+
+  <h4>加項</h4>
+  <p>計件工資、月薪、伙食費、加班費、生產獎金、補助、津貼。</p>
+
+  <h4>扣項</h4>
+  <p>健保、勞保、勞退自提、所得稅 5%、仲介費、體檢費、住宿費、居留證費。</p>
+  <p>
+    上面沒有的，按 <span class="btn-demo">＋ 新增扣項</span> 自己加：填名目與金額，可以加很多筆。
+    例如「制服費」「借支」。
+  </p>
+
+  <div class="note">
+    <span class="note-t">實發為負數會警告</span>
+    <p>扣款超過收入時會出現紅字提醒，但不會擋你儲存。</p>
+  </div>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">薪資計算 — 小明　2026 年 6 月</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div class="mk-modal" style="max-width:none">
+          <div style="display:flex;gap:14px;flex-wrap:wrap">
+            <div style="flex:1;min-width:190px">
+              <div style="font-size:11px;font-weight:700;color:#2d5a3d;margin-bottom:6px">加項</div>
+              <table style="width:100%;border-collapse:collapse">
+                <tr><td class="mk-td" style="border:none">計件工資</td>
+                    <td class="mk-td" style="border:none;text-align:right;font-family:monospace">$18,240</td></tr>
+                <tr><td class="mk-td" style="border:none">月薪</td>
+                    <td class="mk-td" style="border:none;text-align:right;font-family:monospace">$28,000</td></tr>
+                <tr><td class="mk-td" style="border:none">伙食費</td>
+                    <td class="mk-td" style="border:none;text-align:right;font-family:monospace">$2,400</td></tr>
+                <tr><td class="mk-td" style="border:none">生產獎金</td>
+                    <td class="mk-td" style="border:none;text-align:right"><span class="mk-select" style="width:120px">全勤獎金（$2000）</span></td></tr>
+              </table>
+            </div>
+            <div style="flex:1;min-width:190px">
+              <div style="font-size:11px;font-weight:700;color:#8b2020;margin-bottom:6px">扣項</div>
+              <table style="width:100%;border-collapse:collapse">
+                <tr><td class="mk-td" style="border:none">健保</td>
+                    <td class="mk-td" style="border:none;text-align:right;font-family:monospace">−$1,377</td></tr>
+                <tr><td class="mk-td" style="border:none">勞保</td>
+                    <td class="mk-td" style="border:none;text-align:right;font-family:monospace">−$1,043</td></tr>
+                <tr><td class="mk-td" style="border:none">住宿費</td>
+                    <td class="mk-td" style="border:none;text-align:right;font-family:monospace">−$2,500</td></tr>
+              </table>
+              <span class="mk-btn mk-btn-ghost" style="margin-top:6px">＋ 新增扣項</span>
+            </div>
+          </div>
+          <div style="background:#e8f2eb;border:1px solid #b8dcc4;border-radius:6px;padding:9px 14px;margin-top:12px;
+                      display:flex;justify-content:space-between;align-items:center">
+            <span style="font-weight:700;font-size:12px">實發合計</span>
+            <span style="font-family:monospace;font-size:18px;font-weight:700;color:#2d5a3d">$45,720</span></div>
+          <div class="mk-row" style="justify-content:flex-end;margin-top:10px">
+            <span class="mk-btn mk-btn-danger">🗑️ 刪除薪資單</span>
+            <span class="mk-btn mk-btn-ghost">🔓 解鎖調整</span>
+            <span class="mk-btn mk-btn-g">確認結算</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 計件工資與月薪自動帶入，你只填加扣項。實發金額邊填邊算</div>
+  </div>
+
+  <h3>結算鎖</h3>
+  <p><strong>薪資單就是鎖。</strong>只要某員工某月有薪資單，那個月的工作量就：</p>
+  <ul>
+    <li>不能改數量</li>
+    <li>不能刪除</li>
+    <li>對應的工單工段不能改價、不能移除</li>
+  </ul>
+
+  <h3>解鎖：修改已結算的工作量</h3>
+  <p>兩種方式：</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>方式</th><th>做法</th><th>結果</th></tr></thead>
+      <tbody>
+        <tr><td><strong>解鎖調整</strong></td>
+            <td>開啟薪資單 → <span class="btn-demo">🔓 解鎖調整</span></td>
+            <td>暫時解鎖，去「工作量」改完再回來按 <span class="btn-demo p">確認結算</span> 重新鎖上。
+                金額有變動時會提示「原 $X → 新 $Y」</td></tr>
+        <tr><td><strong>刪除薪資單</strong></td>
+            <td><span class="btn-demo">🗑️ 刪除薪資單</span></td>
+            <td>那個月完全解鎖。刪除前會告訴你會解鎖幾筆記錄、實發多少</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>兩種方式都<strong>不會改動工作量的單價</strong>。</p>
+
+  <h3>列印</h3>
+  <ul>
+    <li><strong>個人薪資單</strong>　一人一頁，含加扣項明細。可附上工資表（計件明細）與本月收益累積圖，可選中英雙語</li>
+    <li><strong>工資總表</strong>　列印目前畫面上這張表</li>
+    <li><strong>年度表</strong>　一整年的月度彙總</li>
+  </ul>
+</section>
+
+<!-- ══════════ 12 備份 ══════════ -->
+<section id="backup">
+  <h2>12　備份與雲端</h2>
+  <p class="sec-lead">資料存在瀏覽器裡。不備份的話，清掉瀏覽器資料就沒了。</p>
+
+  <h3>說明文件</h3>
+  <p>
+    這一頁最上方有一張「📂 說明文件」，兩顆按鈕另開分頁：
+    <span class="btn-demo p">📖 使用說明書</span>（就是這一份）與
+    <span class="btn-demo">🔧 開發者手冊</span>（給要改程式的人看的）。
+  </p>
+  <p style="font-size:13px;color:var(--text2)">
+    這兩份是跟主系統放在同一個資料夾的獨立檔案（<code>manual.html</code>、<code>development.html</code>）。
+    如果只複製了主系統一個檔案，按鈕會自動隱藏。
+  </p>
+
+  <h3>匯出備份</h3>
+  <p>
+    <span class="btn-demo p">立即下載備份 (.json)</span> 會下載一個 JSON 檔，
+    <strong>包含所有資料與款式照片</strong>。檔名帶日期，例如 <code>薪資系統備份_20260816.json</code>。
+  </p>
+  <div class="tip">
+    <span class="tip-t">動任何大操作之前先匯出一份</span>
+    <p>永久刪除、合併、清除期間記錄這類不可復原的動作，做之前先備份。</p>
+  </div>
+
+  <h3>還原備份</h3>
+  <p>
+    <span class="btn-demo">匯入</span> 選檔案 → 系統顯示備份時間與筆數摘要
+    （客戶／員工／款式／工單／記錄各幾筆）→ 確認。<strong>目前所有資料會被覆蓋。</strong>
+  </p>
+  <p>還原舊版本的備份也沒問題，系統會自動補齊缺少的欄位。</p>
+
+  <h3>雲端同步（GitHub）</h3>
+  <p>設定之後，資料會自動同步到你的 GitHub 私有倉庫，換一台電腦打開網址就能接著用。</p>
+
+  <div class="mockup-wrap">
+    <div class="mockup">
+      <div class="mk-bar"><div class="mk-dot mk-dot-r"></div><div class="mk-dot mk-dot-y"></div><div class="mk-dot mk-dot-g"></div>
+        <div class="mk-bar-title">備份／還原</div></div>
+      <div class="mk-body-light" style="padding:14px">
+        <div class="mk-card">
+          <div class="mk-card-hdr"><span>本機備份</span></div>
+          <div class="mk-card-body">
+            <div class="mk-row" style="margin:0">
+              <span class="mk-btn mk-btn-g">💾 立即下載備份 (.json)</span>
+              <span class="mk-btn mk-btn-ghost">📂 匯入備份</span>
+            </div>
+            <div style="font-size:10px;color:#888;margin-top:6px">含所有資料與款式照片　·　薪資系統備份_20260816.json</div>
+          </div>
+        </div>
+        <div class="mk-card">
+          <div class="mk-card-hdr mk-card-hdr-green"><span>雲端同步（GitHub）</span><span>● 已連線</span></div>
+          <div class="mk-card-body">
+            <div class="mk-row"><div style="width:66px" class="mk-label">Token</div>
+              <span class="mk-select" style="min-width:210px;font-family:monospace">ghp_••••••••••••••••••••••••</span></div>
+            <div class="mk-row"><div style="width:66px" class="mk-label">倉庫</div>
+              <span class="mk-select" style="min-width:210px;font-family:monospace">andy／payroll-data（Private）</span></div>
+            <div class="mk-row"><div style="width:66px" class="mk-label">檔案</div>
+              <span class="mk-select" style="min-width:210px;font-family:monospace">db.json</span></div>
+            <hr class="mk-divider">
+            <div class="mk-row" style="margin:0">
+              <span class="mk-btn mk-btn-ghost">測試連線</span>
+              <span class="mk-btn mk-btn-ghost">初始化（首次使用）</span>
+              <span class="mk-btn mk-btn-g">儲存設定</span>
+              <span class="mk-btn mk-btn-success">☁ 立即備份</span>
+            </div>
+            <hr class="mk-divider">
+            <div class="mk-row" style="margin:0">
+              <span class="mk-btn mk-btn-ghost">📤 備份照片到 GitHub</span>
+              <span class="mk-btn mk-btn-ghost">📥 從 GitHub 還原照片</span>
+              <span class="mk-manual-badge">照片要手動</span>
+            </div>
+          </div>
+        </div>
+        <div class="mk-note">主資料自動同步；款式照片不會自動同步，換裝置要自己按一次還原</div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 上半是本機備份檔，下半是 GitHub 雲端同步。Token 只存在這台電腦</div>
+  </div>
+
+  <h4>第一次設定</h4>
+  <div class="steps">
+    <div class="step"><div class="step-t">填 GitHub 資訊</div>
+      <p>Token、帳號、倉庫名稱、檔案路徑（預設 <code>db.json</code>）。
+         <strong>倉庫請設為 Private</strong>，Token 只授予 Contents 寫入權限。</p></div>
+    <div class="step"><div class="step-t">測試連線</div>
+      <p><span class="btn-demo">測試連線</span> 確認帳號與權限沒問題。</p></div>
+    <div class="step"><div class="step-t">初始化（只有第一次）</div>
+      <p><span class="btn-demo">初始化（首次使用）</span> 會在倉庫建立第一份資料檔。
+         倉庫已經有資料的話不要按。</p></div>
+    <div class="step"><div class="step-t">儲存設定</div>
+      <p>之後每次存檔都會自動上傳。也可以隨時按 <span class="btn-demo">立即備份</span> 手動推一次。</p></div>
+  </div>
+
+  <div class="warn">
+    <span class="warn-t">Token 只存在這台電腦</span>
+    <p>GitHub Token 存在瀏覽器的 localStorage，<strong>請勿在公用電腦使用</strong>。</p>
+  </div>
+
+  <h4>照片的按鈕</h4>
+  <ul>
+    <li><span class="btn-demo">📤 備份照片到 GitHub</span>　把這台裝置的照片推上去</li>
+    <li><span class="btn-demo">📥 從 GitHub 還原照片</span>　把雲端的照片抓下來</li>
+  </ul>
+
+  <h3>通關密語（key.enc）</h3>
+  <p>
+    如果不想在每一台裝置都貼一次 GitHub Token，可以產生一個 <code>key.enc</code> 金鑰檔：
+    它把同步設定加密起來，放在網站同目錄。之後任何裝置打開網址，
+    <strong>只要輸入通關密語就能登入並取得設定</strong>。
+  </p>
+  <div class="steps">
+    <div class="step"><div class="step-t">設定通關密語</div>
+      <p>密語有<strong>最短長度限制</strong>，系統會擋太短的。</p></div>
+    <div class="step"><div class="step-t">產生並下載</div>
+      <p><span class="btn-demo">產生並下載 key.enc</span>，把檔案放到網站同一個目錄。</p></div>
+    <div class="step"><div class="step-t">其他裝置</div>
+      <p>打開網址 → 輸入通關密語 → <span class="btn-demo">設定並進入</span>。</p></div>
+  </div>
+  <div class="warn">
+    <span class="warn-t">密語一定要夠長</span>
+    <p>
+      <code>key.enc</code> 是可以被公開下載的檔案。雖然內容用 PBKDF2 + AES-GCM 加密，
+      但擋不擋得住離線暴力破解，<strong>完全取決於你的密語長度</strong>。
+    </p>
+  </div>
+
+  <h3>變更密碼</h3>
+  <p>在「備份／還原」頁可以 <span class="btn-demo">變更密碼</span>，也可以設定閒置多久自動登出。</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>項目</th><th>行為</th></tr></thead>
+      <tbody>
+        <tr><td>主資料</td><td><strong>自動同步</strong>，存檔後幾秒內上傳</td></tr>
+        <tr><td>款式照片</td><td><strong>不會自動同步。</strong>要手動按「📥 從 GitHub 還原照片」下載，或「📤 上傳照片」推上去</td></tr>
+        <tr><td>衝突</td><td>以雲端較新的為準；開啟頁面時會先拉雲端</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>資料健康檢查</h3>
+  <p><span class="btn-demo">執行健康檢查</span> 會掃出兩類問題：</p>
+  <ul>
+    <li>
+      <strong>重複記錄</strong>　同員工、同一天、<strong>同一張工單</strong>的同一個工段有多筆。
+      可以按 <span class="btn-demo">合併為一筆</span>（數量相加，並顯示合併前後的金額差）
+      或 <span class="btn-demo">只保留這筆</span>。已結算的那組不給動
+    </li>
+    <li><strong>款式已刪除的工單</strong>　列出來讓你確認。工單本身不受影響，只是不能再編輯</li>
+  </ul>
+  <div class="note">
+    <span class="note-t">為什麼判斷要含工單</span>
+    <p>
+      工單期間可以重疊，同一個人同一天可能替兩張不同工單做同一個工段，兩張單的價還不一樣。
+      那不是重複，是兩批不同的活——所以判斷一定要連工單一起看。
+    </p>
+  </div>
+</section>
+
+<!-- ══════════ 13 手機 ══════════ -->
+<section id="mobile">
+  <h2>13　手機檢視</h2>
+  <p class="sec-lead">螢幕小於 820px 時自動啟用，只能看不能改。</p>
+
+  <div class="mockup-wrap">
+    <div style="display:flex;gap:18px;flex-wrap:wrap;justify-content:center;width:100%">
+      <div style="width:210px;border:8px solid #1c1b18;border-radius:22px;overflow:hidden;background:#f7f6f3;box-shadow:0 4px 20px rgba(0,0,0,.18)">
+        <div style="background:#1c1b18;color:#fff;padding:6px 10px;font-size:11px;font-weight:700;text-align:center">薪資計算系統</div>
+        <div style="display:flex;background:#2b2a26;color:#aaa;font-size:10px;text-align:center">
+          <div style="flex:1;padding:6px 0;background:#2d5a3d;color:#fff;font-weight:700">客戶款式</div>
+          <div style="flex:1;padding:6px 0">員工</div>
+          <div style="flex:1;padding:6px 0">薪資</div></div>
+        <div style="padding:8px">
+          <div class="mk-select" style="width:100%;min-width:0;box-sizing:border-box;font-size:10px;color:#aaa">🔍 搜尋款式</div>
+          <div style="background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:7px 9px;margin-top:7px">
+            <div style="font-size:11px;font-weight:700">#5416 泳裝</div>
+            <div style="font-size:9px;color:#888;margin-top:2px">名人泳裝　·　24 個工段</div></div>
+          <div style="background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:7px 9px;margin-top:6px">
+            <div style="font-size:11px;font-weight:700">#5417 連身泳裝</div>
+            <div style="font-size:9px;color:#888;margin-top:2px">名人泳裝　·　18 個工段</div></div>
+          <div style="text-align:center;font-size:9px;color:#8b6914;background:#fdf8e8;border:1px dashed #d4b45a;border-radius:4px;padding:3px;margin-top:8px">👁 唯讀模式</div>
+        </div>
+      </div>
+      <div style="width:210px;border:8px solid #1c1b18;border-radius:22px;overflow:hidden;background:#f7f6f3;box-shadow:0 4px 20px rgba(0,0,0,.18)">
+        <div style="background:#1c1b18;color:#fff;padding:6px 10px;font-size:11px;font-weight:700;text-align:center">薪資計算系統</div>
+        <div style="display:flex;background:#2b2a26;color:#aaa;font-size:10px;text-align:center">
+          <div style="flex:1;padding:6px 0">客戶款式</div>
+          <div style="flex:1;padding:6px 0">員工</div>
+          <div style="flex:1;padding:6px 0;background:#2d5a3d;color:#fff;font-weight:700">薪資</div></div>
+        <div style="padding:8px">
+          <div class="mk-select" style="width:100%;min-width:0;box-sizing:border-box;font-size:10px">2026-06</div>
+          <div style="background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 9px;margin-top:7px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700">
+              <span>#1 王小明</span><span style="font-family:monospace;color:#2d5a3d">$44,982</span></div>
+            <div style="font-size:9px;color:#888;margin-top:4px;line-height:1.6">
+              計件 $18,432　月薪 $28,000<br>加項 $1,200　扣項 −$2,650</div></div>
+          <div style="background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 9px;margin-top:6px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700">
+              <span>#2 李小華</span><span style="font-family:monospace;color:#2d5a3d">$38,120</span></div></div>
+          <div style="text-align:center;font-size:9px;color:#8b6914;background:#fdf8e8;border:1px dashed #d4b45a;border-radius:4px;padding:3px;margin-top:8px">👁 唯讀模式</div>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-caption">▲ 手機版三個分頁。沒有任何新增／編輯／刪除鈕，只看得到結果</div>
+  </div>
+
+  <p>三個分頁：</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>分頁</th><th>看得到什麼</th></tr></thead>
+      <tbody>
+        <tr><td>客戶款式</td><td>款式清單與搜尋、款式明細（工段與單價、照片）</td></tr>
+        <tr><td>員工</td><td>員工清單與基本資料</td></tr>
+        <tr><td>薪資</td><td>各月薪資單、加扣項明細、計件工資表</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="note-t">為什麼是唯讀</span>
+    <p>手機上手指誤觸就可能改錯薪資。這是硬性限制，寫在資料儲存的唯一出口上——即使有按鈕沒被隱藏，也絕對寫不進資料。</p>
+  </div>
+</section>
+
+<!-- ══════════ 14 FAQ ══════════ -->
+<section id="faq">
+  <h2>14　常見問題</h2>
+
+  <div class="faq">
+    <div class="faq-q">改了款式的單價，為什麼舊記錄的工資沒變？</div>
+    <p>這是刻意的。舊記錄跟著它所屬的工單走，工單記著開單當時談定的價。要改那一批的價，去編輯那張工單。</p>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">改了工單的單價，底下的記錄會跟著變嗎？</div>
+    <p>會，未結算的立刻跟著變。已結算的工段根本不給你改價。</p>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">工作量的「數量」是件還是打？</div>
+    <p>件。單價是元／打。工資 ＝ 件數 ÷ 12 × 單價。</p>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">想改已結算的工作量怎麼辦？</div>
+    <p>到「薪資計算」找到那張薪資單，按「解鎖」改完再確認結算；或直接刪掉薪資單，那個月就完全解鎖。</p>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">為什麼刪不掉這張工單？</div>
+    <p>底下還有工作量記錄。系統會列出是哪幾筆。先到「工作量」把它們刪掉或改到其他工單。</p>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">為什麼永久刪不掉這個款式／客戶？</div>
+    <p>底下還有工單。可以改用一般「刪除」——資料完整保留、記錄上會標示「(已刪除)」、之後隨時能還原。</p>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">同一個款式可以同時有兩張工單嗎？</div>
+    <p>可以，期間重疊也可以。每筆工作量各自記著所屬工單，進度與工資不會重複計算。輸入時記得選對是哪一批。</p>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">請款單的單價為什麼不會自動帶？</div>
+    <p>工單上的單價是你付給員工的工資，請款單上的是客戶付給你的售價，兩者中間的差額是你的毛利。系統不會拿成本當售價。</p>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">換一台電腦，照片不見了？</div>
+    <p>照片不會自動同步。到「備份／還原」按「📥 從 GitHub 還原照片」下載。款式的照片連結不會遺失。</p>
+  </div>
+
+  <div class="faq">
+    <div class="faq-q">手機上為什麼不能輸入工作量？</div>
+    <p>窄螢幕一律唯讀，避免誤觸改錯薪資。請用電腦或把瀏覽器視窗拉寬到 820px 以上。</p>
+  </div>
+</section>
+
+<footer>
+  <span>成衣製造薪資計算系統</span>
+  <span>使用說明書 Ver 4.0.1</span>
+  <span>2026-08-16</span>
+</footer>
+
+</div>
+
+<script>
+// 捲動時標示目前章節
+const links = [...document.querySelectorAll('.sidebar a')];
+const secs  = links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+const mark = ()=>{
+  let cur = secs[0];
+  for(const s of secs){ if(s.getBoundingClientRect().top <= 120) cur = s; }
+  links.forEach(a=>a.classList.toggle('active', a.getAttribute('href')==='#'+cur.id));
+};
+document.addEventListener('scroll', mark, {passive:true});
+mark();
+</script>
+</body>
+</html>

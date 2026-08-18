@@ -70,6 +70,37 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
   border-radius:9px;padding:11px 13px;margin-top:10px}
 .m-net-l{font-size:13px;font-weight:600;color:var(--accent)}
 .m-net-v{font-size:19px;font-weight:700;font-family:var(--mono);color:var(--accent)}
+/* 總覽的統計格：兩欄，數字大、標籤小，一眼看完 */
+.m-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.m-stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px}
+.m-stat-l{font-size:11px;color:var(--text3);letter-spacing:.03em}
+.m-stat-v{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--text);
+  margin-top:3px;line-height:1.15;word-break:break-all}
+.m-stat-v.accent{color:var(--accent)}
+.m-stat-v.warn{color:var(--warn)}
+.m-stat-v.danger{color:var(--danger)}
+.m-stat-s{font-size:10.5px;color:var(--text3);margin-top:2px}
+.m-stat.tap{cursor:pointer}
+/* 區塊標題 */
+.m-sec{font-size:11.5px;font-weight:600;color:var(--text2);letter-spacing:.04em;margin:16px 2px 7px}
+.m-sec:first-child{margin-top:2px}
+/* 狀態標籤 */
+.m-pill{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.m-pill.ok{background:var(--accent-l);color:var(--accent)}
+.m-pill.warn{background:var(--warn-l);color:var(--warn)}
+.m-pill.danger{background:var(--danger-l);color:var(--danger)}
+.m-pill.mute{background:var(--surface2);color:var(--text3)}
+/* 進度條 */
+.m-bar{height:6px;border-radius:99px;background:var(--surface2);overflow:hidden;margin-top:8px}
+.m-bar-i{height:100%;border-radius:99px;background:var(--accent);transition:width .3s}
+.m-bar-i.full{background:var(--accent)}
+.m-bar-i.late{background:var(--danger)}
+/* 分段切換（工單狀態篩選） */
+.m-seg{display:flex;gap:0;background:var(--surface2);border-radius:9px;padding:3px;margin-bottom:10px}
+.m-seg button{flex:1;border:none;background:none;padding:7px 0;font-size:12.5px;border-radius:7px;
+  color:var(--text2);font-family:var(--sans);cursor:pointer;white-space:nowrap}
+.m-seg button.on{background:var(--surface);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+[data-theme="dark"] .m-seg button.on{box-shadow:none}
 /* ── 檢視模式：窄螢幕自動啟用，隱藏會改動資料的操作 ── */
 body.view-only .btn-danger,
 body.view-only .vo-hide{display:none!important}
@@ -331,7 +362,7 @@ tr:hover td{background:var(--surface2)}
   <div id="auth-card">
     <div id="auth-logo-svg" style="margin-bottom:16px"></div>
     <div class="auth-logo">ChenHao 薪資系統</div>
-    <div class="auth-sub">Version 4.0.1</div>
+    <div class="auth-sub">Version 4.0.2</div>
 
     <!-- 設定密碼 -->
     <div id="auth-set-view" style="display:none">
@@ -393,7 +424,7 @@ tr:hover td{background:var(--surface2)}
     </svg>
   </button>
   <span class="hdr-logo">ChenHao 薪資系統</span>
-  <span class="hdr-sub">Version 4.0.1</span>
+  <span class="hdr-sub">Version 4.0.2</span>
   <span class="vo-badge" title="窄螢幕自動進入檢視模式，不開放修改資料">👁 檢視模式</span>
   <div id="hdr-sync-wrap" style="margin-left:auto;display:none;align-items:center;gap:6px;font-size:11px;white-space:nowrap">
     <span id="hdr-sync-icon" style="font-size:13px;line-height:1"></span>
@@ -932,7 +963,9 @@ tr:hover td{background:var(--surface2)}
   </header>
   <div id="m-body"></div>
   <nav id="m-tabs">
-    <button class="m-tab active" data-tab="styles" onclick="mGo('styles')"><span>📋</span>客戶款式</button>
+    <button class="m-tab active" data-tab="home"   onclick="mGo('home')"><span>📊</span>總覽</button>
+    <button class="m-tab"        data-tab="wo"     onclick="mGo('wo')"><span>🧵</span>工單</button>
+    <button class="m-tab"        data-tab="styles" onclick="mGo('styles')"><span>📋</span>款式</button>
     <button class="m-tab"        data-tab="salary" onclick="mGo('salary')"><span>💰</span>薪資</button>
   </nav>
 </div>
@@ -2249,7 +2282,11 @@ const ICON = {
 // ══════════════════════════════
 //  STATE
 // ══════════════════════════════
-const STORE = 'pw9';
+/* 資料格式版本。匯出的備份與雲端檔都會帶著它。
+   v4.0.1 起不再保留任何相容路徑——舊格式一律擋在門口，
+   不讓它靜默還原成一堆空白（見 _assertDataVer）。 */
+const DATA_VER = 9;
+
 let db = {
   // code：客戶代號 <國別><三位流水號>，如 TW001。選國別後自動配發，配發後固定不變
   customers: [],  // {id, code, country, name, phone, mobile, contact, taxId, address, source, createdAt, status}
@@ -2391,71 +2428,27 @@ function save(){
   });
   _ghScheduleSync();
 }
-// 遷移補丁的唯一來源：補齊缺漏的頂層陣列與各記錄欄位。
-// load()（IndexedDB 載入後）與 importBackup()（還原備份後）皆呼叫，避免改一處漏一處。
-function _applyMigrations(){
-  if(!db.tags) db.tags=[];
-  if(!db.insurance) db.insurance={health:[],labor:[]};
-  if(!db.mSalaryHistory) db.mSalaryHistory=[];
-  if(!db.insurance.health) db.insurance.health=[];
-  if(!db.insurance.labor) db.insurance.labor=[];
-  if(!db.salaryRates) db.salaryRates={snackRate:0,overtimeRate:0,bonusOptions:[]};
-  if(!db.salaryRates.bonusOptions) db.salaryRates.bonusOptions=[];
-  if(!db.payrollEntries) db.payrollEntries=[];
-  if(!db.workOrders) db.workOrders=[];
-  if(!db.machines) db.machines=[];
-  if(!db.invoices) db.invoices=[];
-  if(!db.senderProfiles) db.senderProfiles=[];
-  db.customers.forEach(c=>{ if(!c.taxId) c.taxId=''; });
-  // 款式照片：舊版單張 photoId → 多張 photoIds 陣列
-  db.styles.forEach(s=>{
-    if(!s.photoIds){ s.photoIds = s.photoId ? [s.photoId] : []; delete s.photoId; }
-  });
-  db.workOrders.forEach(wo=>{ if(wo.manuallyDone===undefined) wo.manuallyDone=false; });
-  // 工單改為自帶工段與單價快照；舊工單沒有 ops，以款式目前的工段與單價補上。
-  // （舊的工作量記錄不動：它們各自已存 price，薪資計算讀記錄自身價格，不受影響）
-  db.workOrders.forEach(wo=>{
-    if(!Array.isArray(wo.ops) || !wo.ops.length){
-      const s = getStyle(wo.styleId);
-      wo.ops = s ? (s.ops||[]).filter(o=>o.status==='active').map(o=>({
-        opId:o.id, opCode:o.code||'', opName:o.name, machine:o.machine||'', price:o.price||0
-      })) : [];
-    }
-  });
-  /* 請款單改存發件人快照。舊資料只記 senderProfileId，列印時現查主檔，
-     所以改一次公司地址，所有舊單重印出來都變成新地址；發件人被刪掉更慘，
-     抬頭整片空白還看不出少了什麼。請款單是已經寄出去的文件，
-     重印就該跟當初一模一樣——跟工單抄款式、記錄抄工單同一條規則。
-     這裡把現有請款單一次補上快照，補完之後列印就不必再碰主檔。 */
-  db.invoices.forEach(inv=>{
-    if(inv.sender || !inv.senderProfileId) return;
-    const sp = db.senderProfiles.find(x=>x.id===inv.senderProfileId);
-    if(sp) inv.sender = _spSnapshot(sp);
-  });
-  db.insurance.labor.forEach(ins=>{ if(ins.declaredSalary===undefined) ins.declaredSalary=0; });
-  let _maxNo = Math.max(0, ...db.employees.filter(e=>e.empNo).map(e=>Number(e.empNo)||0));
-  db.employees.forEach(e=>{
-    if(!e.tasks) e.tasks=[];
-    if(!e.tagIds) e.tagIds=[];
-    if(!e.insurance) e.insurance={healthId:null,laborId:null};
-    if(!e.empNo) e.empNo = ++_maxNo;
-    if(e.hasLaborRetirement===undefined) e.hasLaborRetirement=false;
-    if(e.hasIncomeTax===undefined) e.hasIncomeTax=false;
-  });
+/* 版本閘門。以前靠 _applyMigrations() 把舊結構補起來，那層已經拆掉，
+   所以舊檔必須擋下來而不是照收——照收的話缺的集合會是 undefined、
+   記錄的客戶與款式名會安安靜靜變成空白，比直接報錯難查得多。
+   本機 IndexedDB 走不到這裡：save() 寫的是 db 本身，裡面沒有 version。
+   那條路靠 db = {...db, ...data} 的預設值兜底。 */
+function _dataVerOf(data){ return Number(data?.version) || 0; }
+function _isSupportedData(data){ return _dataVerOf(data) >= DATA_VER; }
+function _verErrMsg(data){
+  const v = _dataVerOf(data);
+  return `這份資料是舊格式（version ${v||'未標示'}），目前版本只接受 ${DATA_VER} 以上。`
+       + `　請改用 4.0.0 之後匯出的備份。`;
 }
+
 async function load(){
   try{
-    let data = await _idbRead();
-    if(!data){
-      // 第一次開新版本：從 localStorage 搬移
-      const ls = localStorage.getItem(STORE);
-      if(ls){ data = JSON.parse(ls); await _idbWrite(data); }
-    }
+    const data = await _idbRead();
+    // 缺少的頂層鍵會沿用 db 的預設值，不需要另外補
     if(data) db = {...db, ...data};
   }catch(e){
     console.error('load() 讀取資料失敗，將以空白資料開啟：', e);
   }
-  _applyMigrations();
 }
 
 // ══════════════════════════════
@@ -2510,11 +2503,10 @@ function _priceParts(r){
 // 畫面用：上排最後單價，下排「原價 +補貼」；沒有補貼就只顯示一個價
 function _priceDisplayHtml(r){
   const p = _priceParts(r);
-  const badge = r.priceManual ? '<span class="price-manual-badge">手</span>' : '';
-  if(!p) return fmt$(recPrice(r)) + badge;
+  if(!p) return fmt$(recPrice(r));
   const sign = p.diff>0 ? '+' : '−';
   return `<div style="line-height:1.3">
-    <div>${fmt$(recPrice(r))}${badge}</div>
+    <div>${fmt$(recPrice(r))}</div>
     <div style="font-size:10px;color:var(--text3)">${fmt$(p.base)}
       <span class="price-manual">${sign}${Number(Math.abs(p.diff)).toFixed(1)}</span></div>
   </div>`;
@@ -2583,29 +2575,22 @@ function _woById(id){
 function recWo(r){   return _woById(r?.woId); }
 function recWoOp(r){ return _woOpOf(recWo(r), r?.opId); }
 
-const _pick = (a, b) => (a===undefined || a===null || a==='') ? b : a;
-
-function recCustId(r){    return _pick(recWo(r)?.custId,    r?.custId)    || ''; }
-function recCustName(r){  return _pick(recWo(r)?.custName,  r?.custName)  || ''; }
-function recStyleId(r){   return _pick(recWo(r)?.styleId,   r?.styleId)   || ''; }
-function recStyleName(r){ return _pick(recWo(r)?.styleName, r?.styleName) || ''; }
-function recOpName(r){    return _pick(recWoOp(r)?.opName,  r?.opName)    || ''; }
-function recWoNo(r){      return recWo(r)?.woNo || ''; }
+/* 記錄只存 7 個欄位，其餘一律從所屬工單推導，沒有第二條路。
+   工單刪不掉（有記錄就擋），工段也移不掉（有記錄就擋），所以推不出來
+   代表資料真的壞了——回空字串／0，不要拿別的東西頂替蓋掉問題。 */
+function recCustId(r){    return recWo(r)?.custId    || ''; }
+function recCustName(r){  return recWo(r)?.custName  || ''; }
+function recStyleId(r){   return recWo(r)?.styleId   || ''; }
+function recStyleName(r){ return recWo(r)?.styleName || ''; }
+function recOpName(r){    return recWoOp(r)?.opName  || ''; }
+function recWoNo(r){      return recWo(r)?.woNo      || ''; }
 
 // 單價與款式原價。這兩個是錢，推導的來源是工單工段——已結算的工段單價
 // 鎖死改不了，所以歷史金額不可能被動到。
-function recPrice(r){
-  const op = recWoOp(r);
-  return op ? _woOpPrice(op) : (Number(r?.price) || 0);
-}
-function recBase(r){
-  const op = recWoOp(r);
-  if(op?.basePrice != null) return Number(op.basePrice) || 0;
-  // 工單工段沒有「原價」那一層（三層拆解之前建的，只有一個 price）：
-  // 退回記錄自己存的快照。舊記錄知道當初的款式原價，拿它比拿最後單價當原價
-  // 更接近事實——不然還原舊備份之後，補貼那一層就永遠看不到了。
-  return Number(_pick(r?.basePrice, _pick(r?._origPrice, op ? op.price : r?.price))) || 0;
-}
+function recPrice(r){ return _woOpPrice(recWoOp(r)); }
+// _woOpBase 是 basePrice ?? price：工單工段一律經 _woNormOps 補成三層，
+// 這裡讀到的必定有 basePrice，那個 ?? 只是它自己的防呆。
+function recBase(r){  return _woOpBase(recWoOp(r)); }
 // 員工姓名一律以員工檔為準。員工只要有記錄就永久刪不掉，軟刪除也還在檔裡，
 // 所以幾乎永遠查得到；記錄存的名字只是最後的保險。
 // 兩個版本不能混用：
@@ -2614,7 +2599,7 @@ function recBase(r){
 //   recEmpDisp 畫面用，多了 #編號 前綴
 function recEmpName(r){
   const e = getEmp(r?.empId);
-  if(!e) return r?.empName || '';
+  if(!e) return '';        // 員工只要有記錄就永久刪不掉，查不到代表資料壞了
   return e.status==='deleted' ? `已刪除員工 (${e.name})` : e.name;
 }
 function recEmpDisp(r){ return empDisp(r?.empId, r?.empName); }
@@ -2760,15 +2745,31 @@ window.addEventListener('resize', _voApply);
 //  只讀 db，不呼叫任何桌機 render，也永遠不會呼叫 save()。
 //  三個分頁：客戶款式・員工・薪資
 // ══════════════════════════════
-let _mTab = 'styles';
+let _mTab = 'home';
 let _mDetail = null;          // 目前展開的細節 {type, id}
 let _mQuery = '';             // 搜尋字串
 let _mYm = '';                // 薪資分頁的月份
+let _mWoFilter = 'active';    // 工單分頁的狀態篩選
 
-const _mTitle = { styles:'客戶・款式', salary:'薪資計算' };
+const _mTitle = { home:'總覽', wo:'工單追蹤', styles:'客戶・款式', salary:'薪資計算' };
+
+/* 手機專用的金額格式：加千分位。
+   桌機的 fmt$ 不動——CSV 匯出與列印模板都用它，塞逗號會讓 Excel 分欄跑掉。 */
+function m$(n){
+  const v = Number(n)||0;
+  const neg = v<0, a = Math.abs(v);
+  const [i,d] = a.toFixed(1).split('.');
+  return (neg?'-$':'$') + i.replace(/\B(?=(\d{3})+(?!\d))/g,',') + '.' + d;
+}
+// 件數等整數也加千分位
+function mNum(n){ return String(Math.round(Number(n)||0)).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
 
 function mGo(tab){
   _mTab = tab; _mDetail = null; _mQuery = '';
+  // 進工單頁時，若目前的狀態篩選一張都沒有，自動跳到第一個有東西的
+  if(tab==='wo' && !_mWoCount(_mWoFilter)){
+    _mWoFilter = (_mWoFilters.map(f=>f[0]).find(f=>_mWoCount(f)) || 'all');
+  }
   document.querySelectorAll('.m-tab').forEach(b=>
     b.classList.toggle('active', b.dataset.tab===tab));
   mRender();
@@ -2790,17 +2791,247 @@ function mRender(){
   } else {
     title.textContent = _mTitle[_mTab] || '';
   }
-  right.textContent = '';
-  if(_mTab==='styles')      html = _mDetail ? mStyleDetail(_mDetail.id) : mStyleList();
+  /* 右上角原本永遠空著。放這一頁的關鍵數字，省掉內容區一整列的高度。
+     唯讀是硬性限制，這裡順便標出來，免得有人找不到編輯鈕以為壞了。 */
+  right.textContent = _mHdrRight();
+  if(_mTab==='home')        html = mHome();
+  else if(_mTab==='wo')     html = _mDetail ? mWoDetail(_mDetail.id) : mWoList();
+  else if(_mTab==='styles') html = _mDetail ? mStyleDetail(_mDetail.id) : mStyleList();
   else if(_mTab==='salary') html = _mDetail ? mSalaryDetail(_mDetail.id) : mSalaryList();
   document.getElementById('m-body').innerHTML = html;
 }
 
+/* 各頁的數量分段控制與清單自己都有，右上角再印一次是重複。
+   放唯讀標示就好——那是整個手機版唯一不變、又最需要講清楚的事：
+   沒有編輯鈕不是壞了，是設計上不給改。 */
+function _mHdrRight(){ return _mDetail ? '' : '👁 唯讀'; }
 function _mSearchBox(ph){
   return `<input class="m-search" type="search" placeholder="${esc(ph)}" value="${esc(_mQuery)}"
     oninput="mSearch(this.value)">`;
 }
 function _mEmpty(t){ return `<div class="m-empty">${esc(t)}</div>`; }
+
+/* ══ 總覽 ══════════════════════════════════════════════════
+   手機打開第一眼該看到的東西：今天做了多少、這個月累積多少、
+   工單卡在哪、有沒有做完卻忘了請款的。全部唯讀，點統計格會跳到對應分頁。 */
+function mHome(){
+  const t  = today();
+  const ym = t.slice(0,7);
+  // 上個月：用 Date 退一個月，跨年自動借位
+  const pd = new Date(Number(ym.slice(0,4)), Number(ym.slice(5,7))-2, 1);
+  const pym = `${pd.getFullYear()}-${String(pd.getMonth()+1).padStart(2,'0')}`;
+
+  const sum = rs => rs.reduce((a,r)=>a+calcSub(r.qty, recPrice(r)), 0);
+  const qty = rs => rs.reduce((a,r)=>a+(Number(r.qty)||0), 0);
+  const inMonth = m => { const {from,to}=monthRange(m);
+    return db.records.filter(r=>r.date>=from && r.date<=to); };
+  const monRecs = inMonth(ym), preRecs = inMonth(pym);
+  const people  = rs => new Set(rs.map(r=>r.empId)).size;
+  // 達標日算一次就好，兩個月份共用
+  const dd = new Map(db.workOrders.map(w=>[w.id, _woDoneDate(w)]));
+  const finished = m => db.workOrders.filter(w=>(dd.get(w.id)||'').slice(0,7)===m);
+
+  // 工單狀態
+  const wos     = db.workOrders;
+  const done    = wos.filter(_woIsDone);
+  const active  = wos.filter(w=>!_woIsDone(w) && w.endDate>=t);
+  const overdue = wos.filter(w=>!_woIsDone(w) && w.endDate<t);
+  // 請款中＝開了單還沒到帳。金額比張數有感，所以副標放未收金額。
+  const billing = done.map(w=>woInvoice(w.id)).filter(v=>v && !v.paid);
+  const owed    = billing.reduce((a,v)=>a+invGrandTotal(v), 0);
+
+  /* 不看「今天」：工作量不是即時登記的，當天的數字幾乎永遠是 0，
+     放上去只會讓人以為系統壞了。以月為單位才對得上實際作業節奏。 */
+  const block = (label, m, recs) => {
+    const fin = finished(m);
+    const finQty = fin.reduce((a,w)=>a+(Number(w.targetQty)||0), 0);
+    return `<div class="m-sec">${label}　${esc(m)}</div>
+    <div class="m-stats">
+      <div class="m-stat"><div class="m-stat-l">完工工單</div>
+        <div class="m-stat-v">${fin.length}<span style="font-size:12px;font-weight:400;color:var(--text3)"> 張</span></div>
+        <div class="m-stat-s">${mNum(finQty)} 件</div></div>
+      <div class="m-stat"><div class="m-stat-l">計件工資</div>
+        <div class="m-stat-v accent">${m$(sum(recs))}</div>
+        <div class="m-stat-s">${mNum(recs.length)} 筆　${people(recs)} 人</div></div>
+    </div>`;
+  };
+  let h = block('本月', ym, monRecs) + block('上個月', pym, preRecs);
+  h += `
+
+    <div class="m-sec">工單</div>
+    <div class="m-stats">
+      <div class="m-stat tap" onclick="mGoWo('active')"><div class="m-stat-l">進行中</div>
+        <div class="m-stat-v">${active.length}</div><div class="m-stat-s">張 ›</div></div>
+      <div class="m-stat tap" onclick="mGoWo('overdue')"><div class="m-stat-l">已逾期</div>
+        <div class="m-stat-v ${overdue.length?'danger':''}">${overdue.length}</div>
+        <div class="m-stat-s">超過結束日還沒完工 ›</div></div>
+      <div class="m-stat tap" onclick="mGoWo('done')"><div class="m-stat-l">已完工</div>
+        <div class="m-stat-v accent">${done.length}</div><div class="m-stat-s">張 ›</div></div>
+      <div class="m-stat tap" onclick="mGoWo('billing')"><div class="m-stat-l">請款中</div>
+        <div class="m-stat-v ${billing.length?'warn':''}">${billing.length}</div>
+        <div class="m-stat-s">${owed?m$(owed)+' 未到帳':'張'} ›</div></div>
+    </div>`;
+
+  // 最近的工作量，讓人確認「今天記進去了沒」
+  const recent = [...db.records].sort((a,b)=>
+    a.date===b.date ? String(b.createdAt||'').localeCompare(String(a.createdAt||''))
+                    : (a.date<b.date?1:-1)).slice(0,5);
+  h += `<div class="m-sec">最近記錄</div>`;
+  h += recent.length ? recent.map(r=>`
+    <div class="m-card">
+      <div class="m-card-t">
+        <span class="m-card-n">${esc(recEmpDisp(r))}</span>
+        <span class="m-card-v">${m$(calcSub(r.qty, recPrice(r)))}</span>
+      </div>
+      <div class="m-card-s">${esc(fmtDate(r.date))}　${esc(recStyleName(r))}</div>
+      <div class="m-card-s">${esc(opLabelFromRec(r))}　·　${mNum(r.qty)} 件</div>
+    </div>`).join('') : _mEmpty('尚無工作量記錄');
+  return h;
+}
+// 從總覽跳到工單分頁並套用該狀態
+function mGoWo(filter){ _mWoFilter = filter; mGo('wo'); }
+
+/* ══ 工單追蹤 ══════════════════════════════════════════════
+   手機上最常問的是「這批做到哪了」，所以列表就是進度條 + 完成/目標。
+   完成數取各工段的最小值（_woCalc），代表整批真正走完的件數。 */
+/* 完工之後的兩個階段分開看：
+     請款中 = 開了請款單、錢還沒進來
+     已請款 = 開了請款單、已經到帳
+   沒開單的完工工單不會消失——「已完工」本來就是完工工單的全集。 */
+const _mWoFilters = [['active','進行中'],['overdue','逾期'],['done','已完工'],
+                     ['billing','請款中'],['paid','已請款']];
+
+// 某個狀態底下有幾張。用來決定預設要落在哪個分段，以及分段上的數字
+function _mWoCount(f){
+  const t = today();
+  return db.workOrders.filter(w=>{
+    const d = _woIsDone(w);
+    if(f==='active')   return !d && w.endDate>=t;
+    if(f==='overdue')  return !d && w.endDate<t;
+    if(f==='done')     return d;
+    const inv = woInvoice(w.id);
+    if(f==='billing')  return !!inv && !inv.paid;
+    if(f==='paid')     return !!inv && !!inv.paid;
+    return true;
+  }).length;
+}
+function mSetWoFilter(f){ _mWoFilter = f; _mQuery = ''; mRender(); }
+
+function mWoList(){
+  const t = today();
+  let h = `<div class="m-seg">${_mWoFilters.map(([k,label])=>{
+    const n = _mWoCount(k);
+    return `<button class="${_mWoFilter===k?'on':''}" onclick="mSetWoFilter('${k}')"
+      style="${n?'':'opacity:.4'}">${label}<br><span style="font-family:var(--mono);font-size:11px">${n}</span></button>`;
+  }).join('')}</div>`;
+  h += _mSearchBox('搜尋工單號、客戶或款式…');
+
+  let list = db.workOrders.filter(w=>{
+    const isDone = _woIsDone(w);
+    if(_mWoFilter==='active')   return !isDone && w.endDate>=t;
+    if(_mWoFilter==='overdue')  return !isDone && w.endDate<t;
+    if(_mWoFilter==='done')     return isDone;
+    const inv = woInvoice(w.id);
+    if(_mWoFilter==='billing')  return !!inv && !inv.paid;
+    if(_mWoFilter==='paid')     return !!inv && !!inv.paid;
+    return true;
+  });
+  if(_mQuery) list = list.filter(w=>
+    `${w.woNo||''} ${w.custName||''} ${w.styleName||''}`.toLowerCase().includes(_mQuery));
+  // 進行中看急迫度（快到期的在前），其他看最近的在前
+  list = list.sort((a,b)=> (_mWoFilter==='active'||_mWoFilter==='overdue')
+    ? String(a.endDate).localeCompare(String(b.endDate))
+    : String(b.endDate).localeCompare(String(a.endDate)));
+
+  if(!list.length) return h + _mEmpty(_mQuery ? '找不到符合的工單' : '這個狀態沒有工單');
+
+  list.forEach(w=>{ h += _mWoCard(w, t); });
+  return h;
+}
+
+function _mWoCard(w, t){
+  const {doneQty} = _woCalc(w);
+  const target = Number(w.targetQty)||0;
+  const pct  = target>0 ? Math.min(100, Math.round(doneQty/target*100)) : 0;
+  const isDone = _woIsDone(w);
+  const late   = !isDone && w.endDate < t;
+  const pill = isDone
+    ? `<span class="m-pill ok">已完工</span>`
+    : late ? `<span class="m-pill danger">逾期</span>`
+           : `<span class="m-pill mute">進行中</span>`;
+  const inv  = woInvoice(w.id);
+  const bill = !isDone ? ''
+    : !inv        ? `<span class="m-pill warn">未開單</span>`
+    : !inv.paid   ? `<span class="m-pill warn">請款中</span>`
+    :               `<span class="m-pill ok">已到帳</span>`;
+  return `<div class="m-card" onclick="mOpen('wo','${w.id}')" style="cursor:pointer">
+    <div class="m-card-t">
+      <span class="m-card-n" style="font-family:var(--mono);font-size:13px">${esc(w.woNo||'—')}</span>
+      <span style="display:flex;gap:4px">${pill}${bill}</span>
+    </div>
+    <div class="m-card-s" style="margin-top:5px;color:var(--text2)">${esc(w.custName||'')}</div>
+    <div class="m-card-s">${esc(w.styleName||'')}</div>
+    <div class="m-bar"><div class="m-bar-i ${pct>=100?'full':(late?'late':'')}" style="width:${pct}%"></div></div>
+    <div class="m-card-s" style="display:flex;justify-content:space-between;margin-top:5px">
+      <span style="font-family:var(--mono)">${mNum(doneQty)} / ${mNum(target)} 件　${pct}%</span>
+      <span>${esc(fmtDate(w.startDate))}～${esc(fmtDate(w.endDate))}</span>
+    </div>
+  </div>`;
+}
+
+function mWoDetail(id){
+  const w = db.workOrders.find(x=>x.id===id);
+  if(!w) return _mEmpty('找不到工單');
+  const t = today();
+  const {doneQty, detail} = _woCalc(w);
+  const target = Number(w.targetQty)||0;
+  const pct = target>0 ? Math.min(100, Math.round(doneQty/target*100)) : 0;
+  const inv = woInvoice(w.id);
+
+  let h = `<div class="m-card">
+    <div class="m-card-n" style="font-family:var(--mono);font-size:15px">${esc(w.woNo||'—')}</div>
+    <div class="m-card-s" style="font-size:13px;color:var(--text2);margin-top:3px">${esc(w.custName||'')}</div>
+    <div class="m-card-s" style="font-size:13px">${esc(w.styleName||'')}</div>
+    <div class="m-bar"><div class="m-bar-i ${pct>=100?'full':''}" style="width:${pct}%"></div></div>
+    <div class="m-card-s" style="display:flex;justify-content:space-between;margin-top:5px">
+      <span style="font-family:var(--mono);font-size:12.5px">${mNum(doneQty)} / ${mNum(target)} 件　${pct}%</span>
+      <span>${esc(fmtDate(w.startDate))}～${esc(fmtDate(w.endDate))}</span>
+    </div>
+    ${w.note?`<div class="m-sub"><div class="m-card-s">${esc(w.note)}</div></div>`:''}
+  </div>`;
+
+  // 請款狀態：查 invoices 得知，工單身上不存旗標
+  if(_woIsDone(w)){
+    h += inv
+      ? `<div class="m-card"><div class="m-card-t">
+           <span class="m-card-n" style="font-size:13px">請款單 ${esc(inv.invoiceNo||'')}</span>
+           <span class="m-card-v">${m$(invGrandTotal(inv))}</span></div>
+         <div class="m-card-s">${esc(fmtDate(inv.date))} 開單　·　${inv.paid?'已到帳':'未到帳'}</div></div>`
+      : `<div class="m-card"><div class="m-card-s" style="color:var(--warn)">
+           已完工，還沒開請款單</div></div>`;
+  }
+
+  h += `<div class="m-sec">各工段進度　${detail.length} 段</div>`;
+  if(!detail.length) return h + _mEmpty('此工單沒有工段');
+  detail.forEach(d=>{
+    const op  = _woOpOf(w, d.opId);
+    const p   = target>0 ? Math.min(100, Math.round(d.qty/target*100)) : 0;
+    const base = op ? _woOpBase(op) : 0, price = op ? _woOpPrice(op) : 0;
+    const adj  = price - base;
+    h += `<div class="m-card">
+      <div class="m-card-t">
+        <span class="m-card-n">${d.opCode?`<span style="color:var(--text3)">${esc(d.opCode)}.</span> `:''}${esc(d.opName)}</span>
+        <span class="m-card-v" style="font-size:13px">${m$(price)}</span>
+      </div>
+      ${adj ? `<div class="m-card-s" style="font-family:var(--mono)">${m$(base)}
+                 <span style="color:var(--warn)">${adj>0?'+':'−'}${m$(Math.abs(adj)).slice(1)}</span>
+                 ${op?.adjNote?`　<span style="color:var(--text3)">${esc(op.adjNote)}</span>`:''}</div>` : ''}
+      <div class="m-bar"><div class="m-bar-i ${p>=100?'full':''}" style="width:${p}%"></div></div>
+      <div class="m-card-s" style="font-family:var(--mono);margin-top:5px">${mNum(d.qty)} / ${mNum(target)} 件　${p}%　·　${d.rows.length} 筆</div>
+    </div>`;
+  });
+  return h;
+}
 
 // ── 客戶・款式・工段 ──────────────────────────────────────
 function mStyleList(){
@@ -2815,7 +3046,7 @@ function mStyleList(){
   list.forEach(s=>{ const k = s.custName || (getCust(s.custId)?.name) || '（無客戶）';
     (byCust[k] = byCust[k] || []).push(s); });
   Object.keys(byCust).sort().forEach(cust=>{
-    h += `<div class="m-card-s" style="margin:12px 2px 6px;font-weight:600;color:var(--text2)">${esc(cust)}</div>`;
+    h += `<div class="m-sec">${esc(cust)}　${byCust[cust].length} 款</div>`;
     byCust[cust].forEach(s=>{
       const ops = (s.ops||[]).filter(o=>o.status==='active');
       h += `<div class="m-card" onclick="mOpen('style','${s.id}')" style="cursor:pointer">
@@ -2837,14 +3068,15 @@ function mStyleDetail(id){
     <div class="m-card-s">${esc(s.custName || getCust(s.custId)?.name || '')}</div>
   </div>`;
   if(!ops.length) return h + _mEmpty('此款式尚無工段');
-  h += `<div class="m-card-s" style="margin:12px 2px 6px;font-weight:600;color:var(--text2)">工段與單價</div>`;
+  h += `<div class="m-sec">工段與單價　${ops.length} 段　·　單價為元／打</div>`;
   ops.forEach(o=>{
+    const sub = [o.machine && esc(o.machine), o.note && esc(o.note)].filter(Boolean).join(' ・ ');
     h += `<div class="m-card">
       <div class="m-card-t">
         <span class="m-card-n">${o.code?`<span style="color:var(--text3)">${esc(o.code)}.</span> `:''}${esc(o.name)}</span>
-        <span class="m-card-v">${fmt$(o.price||0)}</span>
+        <span class="m-card-v">${m$(o.price||0)}</span>
       </div>
-      <div class="m-card-s">${o.machine?esc(o.machine)+' ・ ':''}單價／打${o.note?' ・ '+esc(o.note):''}</div>
+      ${sub?`<div class="m-card-s">${sub}</div>`:''}
     </div>`;
   });
   return h;
@@ -2863,29 +3095,42 @@ function _mYmList(){
 
 function mSalaryList(){
   const yms = _mYmList();
-  if(!_mYm || !yms.includes(_mYm)) _mYm = yms[0];
+  /* 預設落在最近「有薪資單」的月份。原本一律用當月，但當月通常還沒結算，
+     一打開就是空白，看起來像壞掉。 */
+  if(!_mYm || !yms.includes(_mYm)){
+    const withData = yms.filter(y=>db.payrollEntries.some(e=>e.ym===y));
+    _mYm = withData[0] || yms[0];
+  }
   let h = `<div class="m-row"><select class="m-sel" onchange="mSetYm(this.value)">
-    ${yms.map(y=>`<option value="${esc(y)}" ${y===_mYm?'selected':''}>${esc(y)}</option>`).join('')}
+    ${yms.map(y=>{
+      const n = db.payrollEntries.filter(e=>e.ym===y).length;
+      return `<option value="${esc(y)}" ${y===_mYm?'selected':''}>${esc(y)}　${n?n+' 人':'尚未結算'}</option>`;
+    }).join('')}
   </select></div>`;
 
-  const entries = db.payrollEntries.filter(e=>e.ym===_mYm);
+  let entries = db.payrollEntries.filter(e=>e.ym===_mYm);
   if(!entries.length) return h + _mEmpty(`${_mYm} 尚無薪資計算`);
 
-  const rows = entries.map(en=>({ en, emp:getEmp(en.empId) }))
+  h += _mSearchBox('搜尋員工…');
+  let rows = entries.map(en=>({ en, emp:getEmp(en.empId) }))
     .sort((a,b)=>((a.emp?.empNo)||9999)-((b.emp?.empNo)||9999));
-  const total = entries.reduce((s,e)=>s+(e.netPay||0), 0);
+  if(_mQuery) rows = rows.filter(({en,emp})=>
+    `#${emp?.empNo||''} ${emp?.name||''}`.toLowerCase().includes(_mQuery));
+  if(!rows.length) return h + _mEmpty('找不到符合的員工');
 
+  // 合計跟著搜尋走，不然篩選後的數字對不上看到的清單
+  const total = rows.reduce((s,{en})=>s+(en.netPay||0), 0);
   rows.forEach(({en, emp})=>{
     h += `<div class="m-card" onclick="mOpen('salary','${en.id}')" style="cursor:pointer">
       <div class="m-card-t">
         <span class="m-card-n">${emp?.empNo?`<span style="color:var(--text3)">#${emp.empNo}</span> `:''}${esc(emp?.name || '（已刪除員工）')}</span>
-        <span class="m-card-v">${fmt$(en.netPay||0)}</span>
+        <span class="m-card-v">${m$(en.netPay||0)}</span>
       </div>
-      <div class="m-card-s">計件 ${fmt$(en.pieceWage||0)}${en.mSalary?` ・ 月薪 ${fmt$(en.mSalary)}`:''} ›</div>
+      <div class="m-card-s">計件 ${m$(en.pieceWage||0)}${en.mSalary?` ・ 月薪 ${m$(en.mSalary)}`:''} ›</div>
     </div>`;
   });
-  h += `<div class="m-net"><span class="m-net-l">${entries.length} 人合計</span>
-        <span class="m-net-v">${fmt$(total)}</span></div>`;
+  h += `<div class="m-net"><span class="m-net-l">${rows.length} 人合計</span>
+        <span class="m-net-v">${m$(total)}</span></div>`;
   return h;
 }
 
@@ -2906,7 +3151,7 @@ function mSalaryDetail(id){
   ].filter(r=>r[1]).concat((en.otherDeductions||[]).map(d=>[d.name||'其他扣項', d.amount]).filter(r=>r[1]));
 
   const sum = a => a.reduce((s,r)=>s+(r[1]||0), 0);
-  const li = (n,v,neg) => `<div class="m-li"><span>${esc(n)}</span><b style="color:${neg?'var(--danger)':'var(--text)'}">${neg?'-':''}${fmt$(v)}</b></div>`;
+  const li = (n,v,neg) => `<div class="m-li"><span>${esc(n)}</span><b style="color:${neg?'var(--danger)':'var(--text)'}">${neg?'-':''}${m$(v)}</b></div>`;
 
   let h = `<div class="m-card">
     <div class="m-card-n" style="font-size:16px">${esc(emp?.name || '（已刪除員工）')}</div>
@@ -2914,11 +3159,11 @@ function mSalaryDetail(id){
   </div>`;
   h += `<div class="m-card"><div class="m-card-s" style="font-weight:600;color:var(--accent);margin-bottom:4px">收入項目</div>
     ${inc.map(r=>li(r[0], r[1])).join('') || '<div class="m-li"><span style="color:var(--text3)">（無）</span></div>'}
-    <div class="m-sub"><div class="m-li"><span style="font-weight:600">收入合計</span><b>${fmt$(sum(inc))}</b></div></div></div>`;
+    <div class="m-sub"><div class="m-li"><span style="font-weight:600">收入合計</span><b>${m$(sum(inc))}</b></div></div></div>`;
   h += `<div class="m-card"><div class="m-card-s" style="font-weight:600;color:var(--danger);margin-bottom:4px">扣款項目</div>
     ${ded.map(r=>li(r[0], r[1], true)).join('') || '<div class="m-li"><span style="color:var(--text3)">（無扣款）</span></div>'}
-    <div class="m-sub"><div class="m-li"><span style="font-weight:600">扣款合計</span><b style="color:var(--danger)">-${fmt$(sum(ded))}</b></div></div></div>`;
-  h += `<div class="m-net"><span class="m-net-l">薪資</span><span class="m-net-v">${fmt$(en.netPay||0)}</span></div>`;
+    <div class="m-sub"><div class="m-li"><span style="font-weight:600">扣款合計</span><b style="color:var(--danger)">-${m$(sum(ded))}</b></div></div></div>`;
+  h += `<div class="m-net"><span class="m-net-l">實發薪資</span><span class="m-net-v">${m$(en.netPay||0)}</span></div>`;
   h += mWageTable(en.empId, en.ym);
   return h;
 }
@@ -2929,25 +3174,25 @@ function mWageTable(empId, ym){
   const recs = db.records.filter(r=>r.empId===empId && r.date>=from && r.date<=to)
                          .sort((a,b)=> a.date < b.date ? -1 : 1);
   if(!recs.length){
-    return `<div class="m-card-s" style="margin:16px 2px 6px;font-weight:600;color:var(--text2)">工資表（計件明細）</div>
+    return `<div class="m-sec">工資表（計件明細）</div>
       <div class="m-empty" style="padding:20px 12px">本月無計件工作量紀錄</div>`;
   }
   const total = recs.reduce((s,r)=>s+calcSub(r.qty, recPrice(r)), 0);
-  let h = `<div class="m-card-s" style="margin:16px 2px 6px;font-weight:600;color:var(--text2)">工資表（計件明細）・${recs.length} 筆</div>`;
+  let h = `<div class="m-sec">工資表（計件明細）　${recs.length} 筆</div>`;
   recs.forEach(r=>{
     const code = opCodeOfRec(r);
     h += `<div class="m-card">
       <div class="m-card-t">
         <span class="m-card-n">${esc(r.date)}</span>
-        <span class="m-card-v">${fmt$(calcSub(r.qty, recPrice(r)))}</span>
+        <span class="m-card-v">${m$(calcSub(r.qty, recPrice(r)))}</span>
       </div>
       <div class="m-card-s">${esc(recStyleName(r))}</div>
       <div class="m-card-s">${code?`${esc(code)}. `:''}${esc(recOpName(r))}</div>
-      <div class="m-card-s" style="font-family:var(--mono);color:var(--text2)">${r.qty} 件 × ${fmt$(recPrice(r))}／打</div>
+      <div class="m-card-s" style="font-family:var(--mono);color:var(--text2)">${mNum(r.qty)} 件 × ${m$(recPrice(r))}／打</div>
     </div>`;
   });
   h += `<div class="m-net"><span class="m-net-l">計件合計</span>
-        <span class="m-net-v">${fmt$(Math.round(total*10)/10)}</span></div>`;
+        <span class="m-net-v">${m$(Math.round(total*10)/10)}</span></div>`;
   return h;
 }
 
@@ -5257,7 +5502,7 @@ function saveEditRec(){
 // ══════════════════════════════
 //  批次輸入工作量
 // ══════════════════════════════
-let _crTasks    = []; // [{styleId,custId,custName,styleName,opId,opName,price,priceManual,_origPrice}]
+let _crTasks    = []; // [{styleId,custId,custName,styleName,opId,opName,price}]
 let _crFromDate = ''; // 'YYYY-MM-DD'
 let _crToDate   = ''; // 'YYYY-MM-DD'
 let _crDates      = []; // 日期字串陣列（展開的每一天）
@@ -5516,7 +5761,7 @@ function _crTaskFromWo(wo, opId){
     styleId:wo.styleId, custId:wo.custId, custName:wo.custName, styleName:wo.styleName,
     opId:op.opId, opCode:op.opCode||'', opName:op.opName,
     basePrice:_woOpBase(op), price:_woOpPrice(op),
-    priceManual:false, _origPrice:undefined };
+  };
 }
 
 // ── 移除工段欄
@@ -6211,6 +6456,29 @@ let _woOpDetail  = {}; // woId+'|'+opName → bool（工段子列）
    完成數是所有工段的最小值（_woCalc().doneQty），所以達標代表每一段都做完了。
    這個判定原本抄在工單追蹤與請款單兩個地方，第三個地方要用之前先收成一份，
    免得將來有人只改其中一邊。 */
+/* 工單的「達標日」：逐筆推進各工段的累計，第一次讓最小值追上目標的那一天。
+   月產出要用這個歸月——不能拿記錄的 qty 相加，一件衣服過十道工序會被算十次
+   （實測 7 月相加是 53,250 件，真正完工只有 3,549 件）。
+   手動完工的工單沒有這種日期，退回結束日；兩者都沒有就不計入。 */
+function _woDoneDate(wo){
+  const tgt = Number(wo?.targetQty) || 0;
+  const ops = (wo?.ops || []).map(o => o.opId);
+  if(tgt > 0 && ops.length){
+    const cum = {};
+    ops.forEach(o => { cum[o] = 0; });
+    const rs = db.records.filter(r => r.woId === wo.id)
+      .sort((a,b) => a.date === b.date
+        ? String(a.createdAt||'').localeCompare(String(b.createdAt||''))
+        : (a.date < b.date ? -1 : 1));
+    for(const r of rs){
+      if(cum[r.opId] === undefined) continue;   // 工單上已移除的工段不算進度
+      cum[r.opId] += Number(r.qty) || 0;
+      if(Math.min(...Object.values(cum)) >= tgt) return r.date;
+    }
+  }
+  return wo?.manuallyDone ? (wo.endDate || '') : '';
+}
+
 function _woIsDone(wo){
   if(!wo) return false;
   if(wo.manuallyDone) return true;
@@ -9840,8 +10108,13 @@ async function ghInit(){
       localStorage.setItem('gh_sha', _ghSha);
       _ghLastCommitTime = ghCommitTime;
       localStorage.setItem('gh_commit_time', _ghLastCommitTime);
+      // 雲端可能存著改版前的舊結構，擋下來而不是套用
+      if(!_isSupportedData(result.data)){
+        console.error('雲端資料版本過舊，已略過：', _dataVerOf(result.data));
+        _ghSetStatus('error', _verErrMsg(result.data));
+        return;
+      }
       db = { ...db, ...result.data };
-      _applyMigrations();   // 雲端可能存著改版前的舊結構，與 load()／還原備份走同一套
       if(result.data.exportedAt) _ghLastSyncTime = result.data.exportedAt;
       await _idbWrite(db);
     }
@@ -10690,9 +10963,7 @@ function invRenderRows(items){
 /* 舊資料的品項存的是 {styleId, styleName}，新的存 {name}。
    一律走 name 優先、styleName 墊底——跟系統其他地方同一套「推導優先、
    存的墊底」寫法。不做搬遷：舊備份還原回來照樣讀得到。 */
-function _invItemName(it){
-  return it?.name ?? it?.styleName ?? '';
-}
+function _invItemName(it){ return it?.name || ''; }
 
 /* 新增與刪除都走「重讀全部 → 整份重畫」這一條路，不再自己拼一列插進去。
 
@@ -10862,7 +11133,7 @@ function _invSenderForSave(invId, senderId){
 
 // 列印一律讀請款單自己的快照；只有還沒補到快照的舊單才回頭查主檔
 function invSenderOf(inv){
-  return inv?.sender || db.senderProfiles.find(x=>x.id===inv?.senderProfileId) || {};
+  return inv?.sender || {};   // 存檔一定會寫快照，查不到就是這張單真的沒指定發件人
 }
 
 /* 選了發件人就把內容攤出來，讓人當場確認挑對了沒。
@@ -11238,6 +11509,10 @@ function importBackup(file){
       if(!Array.isArray(data.customers)||!Array.isArray(data.employees)||!Array.isArray(data.styles)){
         showMsg('backup-msg',`${ICON.error} 備份檔案格式不正確（缺少必要的資料或格式錯誤）`,'err',0); return;
       }
+      // 版本閘門：舊格式擋在這裡，不進入還原流程
+      if(!_isSupportedData(data)){
+        showMsg('backup-msg',`${ICON.error} ${_verErrMsg(data)}`,'err',0); return;
+      }
       if(!Array.isArray(data.records)) data.records = [];
       data.employees.forEach(emp=>{ if(!emp.tasks) emp.tasks=[]; });
       const dateStr = data.exportedAt ? new Date(data.exportedAt).toLocaleString() : '未知';
@@ -11251,7 +11526,6 @@ function importBackup(file){
         if(data[k] !== undefined)      db[k] = data[k];
         else if(Array.isArray(db[k]))  db[k] = [];     // 備份沒有＝該集合為空，不留舊資料
       });
-      _applyMigrations(); // 還原後補齊缺漏欄位（與 load() 共用同一套遷移邏輯）
       if(data.images) await imgImportAll(data.images); // 款式照片庫還原到獨立 imageDB
       save();
       document.getElementById('backup-input').value = '';

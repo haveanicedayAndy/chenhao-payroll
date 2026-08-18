@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>薪資計算系統 — 開發者手冊 Ver 4.0.1</title>
+<title>薪資計算系統 — 開發者手冊 Ver 4.0.2</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -101,7 +101,7 @@ footer{margin-top:70px;padding-top:20px;border-top:1px solid var(--border);font-
 <nav class="sidebar">
   <div class="sb-header">
     <div class="sb-title">薪資計算系統</div>
-    <div class="sb-sub">開發者手冊　Ver 4.0.1</div>
+    <div class="sb-sub">開發者手冊　Ver 4.0.2</div>
   </div>
   <div class="sb-nav">
     <div class="sb-group">基礎</div>
@@ -364,8 +364,8 @@ footer{margin-top:70px;padding-top:20px;border-top:1px solid var(--border);font-
   <p><code>items[].unitPrice</code> 是<strong>客戶售價</strong>，與工單的計件工資是兩回事，永遠手動輸入。</p>
   <p>
     <code>items[].name</code> 是<strong>自由文字</strong>，不是款式參照——請款單要開的東西不一定是款式
-    （運費、樣品費、重工費）。舊資料存的是 <code>{styleId, styleName}</code>，一律走
-    <code>_invItemName()</code> 相容，不做搬遷。
+    （運費、樣品費、重工費）。4.0.1 之前的舊格式是 <code>{styleId, styleName}</code>，
+    相容路徑已隨遷移層一起拆除。
   </p>
   <p>
     <code>items[].locked</code> 標記從工單帶進來的那一列：品項名與數量鎖住、不給刪，只有單價可填。
@@ -438,17 +438,25 @@ senderProfiles: [ { id, name, companyName, address, phone, email,
     </p>
   </div>
 
-  <h3>fallback 的順序與意義</h3>
-<pre><span class="k">const</span> _pick = (a, b) =&gt; (a===<span class="k">undefined</span> || a===<span class="k">null</span> || a===<span class="s">''</span>) ? b : a;
-
-<span class="k">function</span> recCustName(r){ <span class="k">return</span> _pick(recWo(r)?.custName, r?.custName) || <span class="s">''</span>; }</pre>
-  <p><strong>先推導，推不出來才退回記錄自己存的。</strong>三個理由：</p>
+  <h3>沒有 fallback，推不出來就是壞了</h3>
+<pre><span class="k">function</span> recCustName(r){ <span class="k">return</span> recWo(r)?.custName || <span class="s">''</span>; }</pre>
+  <p>
+    4.0.1 之前這裡有一層 <code>_pick(推導值, 記錄自己存的)</code>，用來相容改版前那種
+    「記錄身上也存一份客戶／款式／單價」的舊資料。舊資料全部轉換完成之後整層拆掉了。
+  </p>
+  <p><strong>現在推不出來就是資料真的壞了，一律回空字串／0，不要拿別的東西頂替。</strong>可以這樣做的前提是兩個守門員：</p>
   <ul>
-    <li>正常記錄兩邊本來就一樣，輸出完全不變</li>
-    <li>孤兒記錄（沒 <code>woId</code> 或工單被刪）退回舊快照，不會變空白</li>
-    <li>改工單價之後底下的記錄自動跟著走，不可能再對不上</li>
+    <li>工單只要有記錄就刪不掉 → <code>recWo(r)</code> 不可能是 null</li>
+    <li>工段只要有記錄就移不掉 → <code>recWoOp(r)</code> 不可能是 null</li>
   </ul>
-  <p>還原改版前的舊備份時，記錄還帶著那些欄位，退路也還在——所以 <strong>fallback 永久保留</strong>，不是過渡期的權宜。</p>
+  <div class="warn">
+    <span class="warn-t">不要再加回 fallback</span>
+    <p>
+      看到某筆記錄的客戶名是空的，正確的反應是去查為什麼工單不見了，
+      不是在這裡補一個 <code>|| r.custName</code>。那樣只會把資料損壞蓋起來，
+      而記錄身上早就沒有 <code>custName</code> 這個欄位了。
+    </p>
+  </div>
 
   <h3>工單索引</h3>
 <pre><span class="k">let</span> _woIdx = <span class="k">null</span>, _woIdxSrc = <span class="k">null</span>, _woIdxLen = -<span class="n">1</span>;
@@ -535,6 +543,34 @@ senderProfiles: [ { id, name, companyName, address, phone, email,
 <span class="k">function</span> _woOpHasRecs(opId){ <span class="k">return</span> (_woRecsByOp[opId]||<span class="n">0</span>)    &gt; <span class="n">0</span>; }</pre>
   <p>在 <code>openWorkOrderModal()</code> 裡重算。<strong>鎖是逐工段的</strong>——同一張工單可以一部分鎖住、一部分還能改。</p>
 
+  <h3>手機檢視版</h3>
+  <p>
+    寬度 ≤ 820px 時整個換掉桌機版面（<code>#m-app</code>），四個分頁：
+    <strong>總覽 / 工單 / 款式 / 薪資</strong>。它<strong>只讀 db，不呼叫任何桌機 render，也永遠不會呼叫 save()</strong>。
+    所有函式以 <code>m</code> 開頭，狀態在 <code>_mTab / _mDetail / _mQuery / _mYm / _mWoFilter</code>。
+  </p>
+  <div class="warn">
+    <span class="warn-t">月產出不能把記錄的 qty 相加</span>
+    <p>
+      一件衣服經過十幾道工序，每道各一筆記錄。相加等於同一件算十幾次——
+      實測 2026-07 相加是 53,250 件，真正完工只有 3,549 件。
+    </p>
+    <p style="margin-top:8px">
+      正確做法是 <code>_woDoneDate(wo)</code>：逐筆推進各工段的累計，
+      <strong>第一次讓最小值追上 targetQty 的那一天</strong>就是達標日，用它歸月。
+      這跟 <code>_woCalc().doneQty</code> 取最小值是同一個道理——最小值才是真正走完全部工段的件數。
+      手動完工的工單沒有這種日期，退回 <code>endDate</code>；兩者都沒有就不計入。
+    </p>
+    <p style="margin-top:8px">
+      反過來說，<strong>計件工資相加是對的</strong>：每一道工序的錢本來就都要付。
+      同一個畫面上兩格的口徑不同，是刻意的。
+    </p>
+  </div>
+  <p>
+    金額用手機專用的 <code>m$()</code> / <code>mNum()</code>（帶千分位）。
+    <strong>桌機的 <code>fmt$</code> 不要改</strong>——CSV 匯出與列印模板都用它，塞逗號會讓 Excel 分欄跑掉。
+  </p>
+
   <h3>檢視模式</h3>
 <pre><span class="k">function</span> save(){
   <span class="c">// 檢視模式的最後防線：唯一存檔出口，攔在這裡就不可能有任何資料變更落地</span>
@@ -565,26 +601,33 @@ senderProfiles: [ { id, name, companyName, address, phone, email,
   <h3>save() 與 load()</h3>
   <p><code>save()</code> 是<strong>唯一</strong>的寫入出口：擋檢視模式 → 更新 <code>exportedAt</code> → 寫 IndexedDB → 排程雲端同步。</p>
 
-  <h3>_applyMigrations()</h3>
-  <p>補齊舊資料缺少的集合與欄位。<strong>三個地方會呼叫，缺一不可：</strong></p>
-  <ol>
-    <li>啟動載入之後</li>
-    <li>還原備份之後</li>
-    <li><strong>GitHub 同步拉回資料之後</strong>（曾經漏掉，導致雲端的舊結構補不上，要重開頁面才會補）</li>
-  </ol>
-  <p>目前做的幾件比較重的事：</p>
+  <h3>版本閘門（取代了遷移層）</h3>
+  <p>
+    4.0.1 之前有一個 <code>_applyMigrations()</code>，在載入／還原／雲端拉回三個地方
+    把舊結構補起來。舊資料轉換完成後整個拆掉了，改成<strong>把舊格式擋在門口</strong>。
+  </p>
+<pre><span class="k">const</span> DATA_VER = 9;
+<span class="k">function</span> _isSupportedData(data){ <span class="k">return</span> Number(data?.version) &gt;= DATA_VER; }</pre>
   <div class="tbl"><table>
-    <thead><tr><th>補什麼</th><th>怎麼補</th></tr></thead>
+    <thead><tr><th>入口</th><th>有沒有 version</th><th>做什麼</th></tr></thead>
     <tbody>
-      <tr><td>款式照片 <code>photoId</code> → <code>photoIds[]</code></td><td>單張改成陣列</td></tr>
-      <tr><td>工單沒有 <code>ops</code></td><td>以款式目前的工段與單價補上（舊記錄不動，它們各自存了 price）</td></tr>
-      <tr><td>請款單沒有 <code>sender</code></td><td>照 <code>senderProfileId</code> 找主檔，<code>_spSnapshot()</code> 抄一份進去</td></tr>
+      <tr><td><code>importBackup()</code></td><td>有</td><td>低於 9 直接拒絕，訊息寫在還原區</td></tr>
+      <tr><td>GitHub 拉回</td><td>有（<code>{version:9, ...db}</code>）</td><td>低於 9 不套用，同步狀態顯示錯誤</td></tr>
+      <tr><td><code>load()</code>（IndexedDB）</td><td><strong>沒有</strong></td><td>擋不了。<code>save()</code> 寫的是 <code>db</code> 本身，裡面沒有 version 欄位</td></tr>
     </tbody>
   </table></div>
-  <p style="font-size:13px;color:var(--text2)">
-    請款單品項的 <code>{styleId,styleName}</code> → <code>{name}</code> <strong>刻意不做搬遷</strong>：
-    讀取端 <code>_invItemName()</code> 已經相容，搬遷只是多一次改寫舊資料的機會。
+  <p>
+    IndexedDB 那條路靠 <code>db = {...db, ...data}</code> 兜底：缺少的頂層鍵會沿用
+    <code>db</code> 宣告時的預設值，所以結構不會缺。這是為什麼 <code>db</code> 的宣告要把每個集合都寫出來。
   </p>
+  <div class="warn">
+    <span class="warn-t">為什麼是擋下而不是照收</span>
+    <p>
+      推導層的 fallback 已經拆了。舊備份照收的話，缺的集合會是 <code>undefined</code>（直接爆），
+      而記錄的客戶與款式名會<strong>安安靜靜變成空白</strong>——後者比報錯難查得多。
+      寧可讓人看到一句「這是舊格式」，也不要收下一份看起來正常、實際上名字全掉光的資料。
+    </p>
+  </div>
 
   <h3>GitHub 同步</h3>
   <div class="tbl"><table>
@@ -782,13 +825,13 @@ confirmDlg(title, bodyHtml, okLabel, okCls, onOk, sizeCls)</pre>
     <thead><tr><th>區塊</th><th>負責</th><th>關鍵函式</th></tr></thead>
     <tbody>
       <tr><td>ICONS</td><td>圖示集中管理</td><td class="mono">ICON.*</td></tr>
-      <tr><td>STATE</td><td><code>db</code> 定義、IndexedDB、遷移</td><td class="mono">save / load / _applyMigrations</td></tr>
+      <tr><td>STATE</td><td><code>db</code> 定義、IndexedDB、版本閘門</td><td class="mono">save / load / _isSupportedData</td></tr>
       <tr><td>UTILS</td><td>uid、日期、格式化、esc</td><td class="mono">uid / _ymd / fmt$ / fmtDate / esc</td></tr>
       <tr><td><strong>核心計算／規則</strong></td><td>薪資公式、鎖定、查詢 helper</td><td class="mono">calcSub / _isRecLocked / recsBy*</td></tr>
       <tr><td><strong>推導層</strong></td><td>記錄的欄位推導</td><td class="mono">recXxx / _woById</td></tr>
       <tr><td>NAVIGATION</td><td>頁面切換</td><td class="mono">showPage</td></tr>
       <tr><td>檢視模式</td><td>窄螢幕唯讀</td><td class="mono">_voApply / _VO_WIDTH</td></tr>
-      <tr><td>手機檢視版</td><td>獨立的唯讀渲染</td><td class="mono">mRender / mStyleList / mWageTable</td></tr>
+      <tr><td>手機檢視版</td><td>獨立的唯讀渲染，四個分頁</td><td class="mono">mRender / mHome / mWoList / mStyleList / mSalaryList</td></tr>
       <tr><td>MODALS</td><td>視窗</td><td class="mono">openM / closeM / confirmDlg</td></tr>
       <tr><td>CUSTOMERS</td><td>客戶與客戶代號</td><td class="mono">_custNextCode / hardDeleteCustomer</td></tr>
       <tr><td>STYLES</td><td>款式與照片</td><td class="mono">_photoIdFor / imgSave</td></tr>
@@ -983,7 +1026,7 @@ custName: cust?.name || wo.custName || <span class="s">''</span></pre>
 
 <footer>
   <span>薪資計算系統 開發者手冊</span>
-  <span>Ver 4.0.1</span>
+  <span>Ver 4.0.2</span>
   <span>2026-08-16</span>
 </footer>
 

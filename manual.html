@@ -264,7 +264,7 @@
 <body>
 
 <nav class="sidebar">
-  <div class="sidebar-logo">成衣製造薪資計算系統<div class="sub">使用說明書　Ver 4.0.1</div></div>
+  <div class="sidebar-logo">成衣製造薪資計算系統<div class="sub">使用說明書　Ver 4.0.2</div></div>
 
   <div class="sidebar-section">開始</div>
   <a href="#start">1　開始使用</a>
@@ -299,7 +299,7 @@
     結算薪資單、開請款單給客戶。這份說明書照著實際操作順序寫。
   </p>
   <div class="cover-meta">
-    <span>Version 4.0.1</span>
+    <span>Version 4.0.2</span>
     <span>更新日期 2026-08-18</span>
     <span>單一 HTML 檔・離線可用</span>
   </div>
@@ -324,7 +324,7 @@
         <div style="width:170px;background:#1c1b18;color:#d4d2cc;padding:12px 0;flex-shrink:0">
           <div style="padding:0 14px 12px;border-bottom:1px solid #333">
             <div style="font-size:12px;font-weight:700;color:#fff">薪資計算系統</div>
-            <div style="font-size:9px;color:#888;margin-top:2px">Ver 4.0.1</div></div>
+            <div style="font-size:9px;color:#888;margin-top:2px">Ver 4.0.2</div></div>
           <div class="mk-section-label" style="padding:10px 14px 4px;color:#777">基本設定</div>
           <div style="padding:5px 14px;font-size:11px">客戶・款式・工段</div>
           <div style="padding:5px 14px;font-size:11px;background:#2d5a3d;color:#fff;font-weight:700">工單追蹤</div>
@@ -1625,7 +1625,14 @@
     <span class="btn-demo">匯入</span> 選檔案 → 系統顯示備份時間與筆數摘要
     （客戶／員工／款式／工單／記錄各幾筆）→ 確認。<strong>目前所有資料會被覆蓋。</strong>
   </p>
-  <p>還原舊版本的備份也沒問題，系統會自動補齊缺少的欄位。</p>
+  <div class="warn">
+    <span class="warn-t">只吃 4.0.0 之後的備份</span>
+    <p>
+      更早版本匯出的備份<strong>還原不了</strong>，系統會擋下來並告訴你版本不符。
+      這是刻意的：舊格式少了現在需要的欄位，硬還原的話客戶名、款式名會安靜地變成空白，
+      看起來像正常資料，實際上已經壞了。與其這樣，不如直接擋住。
+    </p>
+  </div>
 
   <h3>雲端同步（GitHub）</h3>
   <p>設定之後，資料會自動同步到你的 GitHub 私有倉庫，換一台電腦打開網址就能接著用。</p>
@@ -1757,65 +1764,139 @@
 <!-- ══════════ 13 手機 ══════════ -->
 <section id="mobile">
   <h2>13　手機檢視</h2>
-  <p class="sec-lead">螢幕小於 820px 時自動啟用，只能看不能改。</p>
+  <p class="sec-lead">螢幕小於 820px 時自動啟用，只能看不能改。四個分頁，切到哪一頁都不會有編輯鈕。</p>
 
   <div class="mockup-wrap">
     <div style="display:flex;gap:18px;flex-wrap:wrap;justify-content:center;width:100%">
       <div style="width:210px;border:8px solid #1c1b18;border-radius:22px;overflow:hidden;background:#f7f6f3;box-shadow:0 4px 20px rgba(0,0,0,.18)">
-        <div style="background:#1c1b18;color:#fff;padding:6px 10px;font-size:11px;font-weight:700;text-align:center">薪資計算系統</div>
-        <div style="display:flex;background:#2b2a26;color:#aaa;font-size:10px;text-align:center">
-          <div style="flex:1;padding:6px 0;background:#2d5a3d;color:#fff;font-weight:700">客戶款式</div>
-          <div style="flex:1;padding:6px 0">員工</div>
-          <div style="flex:1;padding:6px 0">薪資</div></div>
-        <div style="padding:8px">
-          <div class="mk-select" style="width:100%;min-width:0;box-sizing:border-box;font-size:10px;color:#aaa">🔍 搜尋款式</div>
-          <div style="background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:7px 9px;margin-top:7px">
-            <div style="font-size:11px;font-weight:700">#5416 泳裝</div>
-            <div style="font-size:9px;color:#888;margin-top:2px">名人泳裝　·　24 個工段</div></div>
-          <div style="background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:7px 9px;margin-top:6px">
-            <div style="font-size:11px;font-weight:700">#5417 連身泳裝</div>
-            <div style="font-size:9px;color:#888;margin-top:2px">名人泳裝　·　18 個工段</div></div>
-          <div style="text-align:center;font-size:9px;color:#8b6914;background:#fdf8e8;border:1px dashed #d4b45a;border-radius:4px;padding:3px;margin-top:8px">👁 唯讀模式</div>
+        <div style="background:#1c1b18;color:#fff;padding:6px 10px;font-size:10px;font-weight:700;display:flex;justify-content:space-between">
+          <span>總覽</span><span style="font-weight:400;color:#bba">👁 唯讀</span></div>
+        <div style="padding:8px;min-height:196px"><div style="font-size:8px;color:#888;font-weight:700;margin-bottom:4px">本月　2026-08</div>
+<div style="display:flex;gap:5px;margin-bottom:7px"><div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:6px 7px">
+  <div style="font-size:8px;color:#999">完工工單</div>
+  <div style="font-size:14px;font-weight:700;font-family:monospace;color:#1a1a1a;line-height:1.2">3 張</div>
+  <div style="font-size:7.5px;color:#aaa">1,120 件</div></div><div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:6px 7px">
+  <div style="font-size:8px;color:#999">計件工資</div>
+  <div style="font-size:14px;font-weight:700;font-family:monospace;color:#2d5a3d;line-height:1.2">$32,105.0</div>
+  <div style="font-size:7.5px;color:#aaa">344 筆　14 人</div></div></div>
+<div style="font-size:8px;color:#888;font-weight:700;margin-bottom:4px">上個月　2026-07</div>
+<div style="display:flex;gap:5px;margin-bottom:7px"><div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:6px 7px">
+  <div style="font-size:8px;color:#999">完工工單</div>
+  <div style="font-size:14px;font-weight:700;font-family:monospace;color:#1a1a1a;line-height:1.2">16 張</div>
+  <div style="font-size:7.5px;color:#aaa">3,549 件</div></div><div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:6px 7px">
+  <div style="font-size:8px;color:#999">計件工資</div>
+  <div style="font-size:14px;font-weight:700;font-family:monospace;color:#2d5a3d;line-height:1.2">$133,917.4</div>
+  <div style="font-size:7.5px;color:#aaa">344 筆　14 人</div></div></div>
+<div style="font-size:8px;color:#888;font-weight:700;margin-bottom:4px">工單</div>
+<div style="display:flex;gap:5px;margin-bottom:5px"><div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:6px 7px">
+  <div style="font-size:8px;color:#999">進行中</div>
+  <div style="font-size:14px;font-weight:700;font-family:monospace;color:#1a1a1a;line-height:1.2">4</div>
+  <div style="font-size:7.5px;color:#aaa">張 ›</div></div><div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:6px 7px">
+  <div style="font-size:8px;color:#999">已逾期</div>
+  <div style="font-size:14px;font-weight:700;font-family:monospace;color:#8b2020;line-height:1.2">1</div>
+  <div style="font-size:7.5px;color:#aaa">超過結束日 ›</div></div></div>
+<div style="display:flex;gap:5px"><div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:6px 7px">
+  <div style="font-size:8px;color:#999">已完工</div>
+  <div style="font-size:14px;font-weight:700;font-family:monospace;color:#2d5a3d;line-height:1.2">60</div>
+  <div style="font-size:7.5px;color:#aaa">張 ›</div></div><div style="flex:1;background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:6px 7px">
+  <div style="font-size:8px;color:#999">請款中</div>
+  <div style="font-size:14px;font-weight:700;font-family:monospace;color:#8b6020;line-height:1.2">2</div>
+  <div style="font-size:7.5px;color:#aaa">$18,065.0 未到帳 ›</div></div></div></div>
+        <div style="display:flex;background:#f0ede8;border-top:1px solid #ddd;font-size:8px;text-align:center;color:#999">
+          <div style="flex:1;padding:5px 0;color:#2d5a3d;font-weight:700"><div style="font-size:12px">📊</div>總覽</div><div style="flex:1;padding:5px 0"><div style="font-size:12px">🧵</div>工單</div><div style="flex:1;padding:5px 0"><div style="font-size:12px">📋</div>款式</div><div style="flex:1;padding:5px 0"><div style="font-size:12px">💰</div>薪資</div>
         </div>
       </div>
       <div style="width:210px;border:8px solid #1c1b18;border-radius:22px;overflow:hidden;background:#f7f6f3;box-shadow:0 4px 20px rgba(0,0,0,.18)">
-        <div style="background:#1c1b18;color:#fff;padding:6px 10px;font-size:11px;font-weight:700;text-align:center">薪資計算系統</div>
-        <div style="display:flex;background:#2b2a26;color:#aaa;font-size:10px;text-align:center">
-          <div style="flex:1;padding:6px 0">客戶款式</div>
-          <div style="flex:1;padding:6px 0">員工</div>
-          <div style="flex:1;padding:6px 0;background:#2d5a3d;color:#fff;font-weight:700">薪資</div></div>
-        <div style="padding:8px">
-          <div class="mk-select" style="width:100%;min-width:0;box-sizing:border-box;font-size:10px">2026-06</div>
-          <div style="background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 9px;margin-top:7px">
-            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700">
-              <span>#1 王小明</span><span style="font-family:monospace;color:#2d5a3d">$44,982</span></div>
-            <div style="font-size:9px;color:#888;margin-top:4px;line-height:1.6">
-              計件 $18,432　月薪 $28,000<br>加項 $1,200　扣項 −$2,650</div></div>
-          <div style="background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:8px 9px;margin-top:6px">
-            <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700">
-              <span>#2 李小華</span><span style="font-family:monospace;color:#2d5a3d">$38,120</span></div></div>
-          <div style="text-align:center;font-size:9px;color:#8b6914;background:#fdf8e8;border:1px dashed #d4b45a;border-radius:4px;padding:3px;margin-top:8px">👁 唯讀模式</div>
+        <div style="background:#1c1b18;color:#fff;padding:6px 10px;font-size:10px;font-weight:700;display:flex;justify-content:space-between">
+          <span>工單</span><span style="font-weight:400;color:#bba">👁 唯讀</span></div>
+        <div style="padding:8px;min-height:196px"><div style="display:flex;background:#f0ede8;border-radius:5px;padding:2px;gap:1px;font-size:8px"><div style="flex:1;padding:4px 0;text-align:center;border-radius:4px;color:#888">進行中<div style="font-family:monospace;font-size:8px">4</div></div><div style="flex:1;padding:4px 0;text-align:center;border-radius:4px;color:#888">逾期<div style="font-family:monospace;font-size:8px">1</div></div><div style="flex:1;padding:4px 0;text-align:center;border-radius:4px;color:#888">已完工<div style="font-family:monospace;font-size:8px">60</div></div><div style="flex:1;padding:4px 0;text-align:center;border-radius:4px;background:#fff;font-weight:700;color:#1a1a1a">請款中<div style="font-family:monospace;font-size:8px">2</div></div><div style="flex:1;padding:4px 0;text-align:center;border-radius:4px;color:#888">已請款<div style="font-family:monospace;font-size:8px">1</div></div></div>
+<div style="background:#fff;border:1px solid #ddd;border-radius:5px;padding:4px 7px;font-size:8px;color:#aaa;margin-top:6px">🔍 搜尋工單號、客戶或款式…</div>
+<div style="background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:7px 8px;margin-top:6px">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <span style="font-family:monospace;font-size:9.5px;font-weight:700">TW008-2026-001</span><span><span style="font-size:7.5px;font-weight:700;padding:1px 6px;border-radius:9px;background:#e8f2eb;color:#2d5a3d;margin-left:3px">已完工</span><span style="font-size:7.5px;font-weight:700;padding:1px 6px;border-radius:9px;background:#fff8e8;color:#8b6020;margin-left:3px">請款中</span></span></div>
+  <div style="font-size:8.5px;color:#666;margin-top:3px">逸豐企業社</div>
+  <div style="font-size:8.5px;color:#999">#123 圓領短袖上衣 (本布領)</div>
+  <div style="height:4px;border-radius:9px;background:#eee;margin-top:5px"><div style="height:100%;width:100%;border-radius:9px;background:#2d5a3d"></div></div>
+  <div style="display:flex;justify-content:space-between;font-size:7.5px;color:#999;margin-top:3px">
+    <span style="font-family:monospace">5,518 / 5,518 件　100%</span><span>04/01～04/24</span></div></div>
+<div style="background:#fff;border:1px solid #e2e0da;border-radius:6px;padding:7px 8px;margin-top:6px">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <span style="font-family:monospace;font-size:9.5px;font-weight:700">TW008-2026-009</span><span><span style="font-size:7.5px;font-weight:700;padding:1px 6px;border-radius:9px;background:#e8f2eb;color:#2d5a3d;margin-left:3px">已完工</span><span style="font-size:7.5px;font-weight:700;padding:1px 6px;border-radius:9px;background:#fff8e8;color:#8b6020;margin-left:3px">請款中</span></span></div>
+  <div style="font-size:8.5px;color:#666;margin-top:3px">逸豐企業社</div>
+  <div style="font-size:8.5px;color:#999">115全障運-POLO短袖</div>
+  <div style="height:4px;border-radius:9px;background:#eee;margin-top:5px"><div style="height:100%;width:100%;border-radius:9px;background:#2d5a3d"></div></div>
+  <div style="display:flex;justify-content:space-between;font-size:7.5px;color:#999;margin-top:3px">
+    <span style="font-family:monospace">321 / 321 件　100%</span><span>04/11～04/21</span></div></div></div>
+        <div style="display:flex;background:#f0ede8;border-top:1px solid #ddd;font-size:8px;text-align:center;color:#999">
+          <div style="flex:1;padding:5px 0"><div style="font-size:12px">📊</div>總覽</div><div style="flex:1;padding:5px 0;color:#2d5a3d;font-weight:700"><div style="font-size:12px">🧵</div>工單</div><div style="flex:1;padding:5px 0"><div style="font-size:12px">📋</div>款式</div><div style="flex:1;padding:5px 0"><div style="font-size:12px">💰</div>薪資</div>
         </div>
       </div>
     </div>
-    <div class="mockup-caption">▲ 手機版三個分頁。沒有任何新增／編輯／刪除鈕，只看得到結果</div>
+    <div class="mockup-caption">▲ 左：總覽，打開就看到本月與上個月的產出、工單卡在哪。右：工單追蹤，分段帶張數</div>
   </div>
 
-  <p>三個分頁：</p>
   <div class="tbl">
     <table>
       <thead><tr><th>分頁</th><th>看得到什麼</th></tr></thead>
       <tbody>
-        <tr><td>客戶款式</td><td>款式清單與搜尋、款式明細（工段與單價、照片）</td></tr>
-        <tr><td>員工</td><td>員工清單與基本資料</td></tr>
-        <tr><td>薪資</td><td>各月薪資單、加扣項明細、計件工資表</td></tr>
+        <tr><td><strong>總覽</strong></td><td>本月與上個月的完工工單張數與件數、計件工資；工單四個狀態的張數；最近五筆記錄</td></tr>
+        <tr><td><strong>工單</strong></td><td>依狀態分段的工單清單（含進度條），點進去看每個工段做了幾件</td></tr>
+        <tr><td><strong>款式</strong></td><td>款式清單與搜尋、工段與單價</td></tr>
+        <tr><td><strong>薪資</strong></td><td>各月薪資單、加扣項明細、計件工資表</td></tr>
       </tbody>
     </table>
   </div>
 
+  <h3>總覽</h3>
+  <p>
+    刻意<strong>不看「今天」</strong>。工作量不是當下即時登記的，今天的數字幾乎永遠是 0，
+    放上去只會讓人以為系統壞了。以月為單位才對得上實際作業節奏，所以是本月與上個月並排。
+  </p>
+  <p>工單那四格點下去會直接跳到工單分頁對應的狀態。「請款中」那格的副標印的是<strong>未到帳金額</strong>。</p>
+
+  <div class="warn">
+    <span class="warn-t">產出要看工單，不能把工段件數相加</span>
+    <p>
+      一件衣服要經過十幾道工序，每一道都會記一筆。把這些件數加起來，
+      同一件會被算十幾次——實測 7 月相加是 53,250 件，真正完工只有 3,549 件。
+      所以總覽的產出是<strong>以工單為單位</strong>：算這個月有幾張工單「各工段都做滿目標」，
+      歸在讓它達標的那一天所屬的月份。
+    </p>
+    <p style="margin-top:8px">
+      旁邊的<strong>計件工資</strong>則是照記錄算的，那個相加是對的——每一道工序的錢本來就都要付。
+      所以兩格的口徑不同：左邊看產出、右邊看人力成本。
+    </p>
+  </div>
+
+  <h3>工單</h3>
+  <p>上方分段是完工前後的五個階段，每一段標著張數：</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>分段</th><th>意思</th></tr></thead>
+      <tbody>
+        <tr><td>進行中</td><td>還沒完工，也還沒過結束日</td></tr>
+        <tr><td>逾期</td><td>還沒完工，但已經過了結束日</td></tr>
+        <tr><td>已完工</td><td>完工工單的全集，不管有沒有開請款單</td></tr>
+        <tr><td>請款中</td><td>開了請款單，<strong>錢還沒進來</strong></td></tr>
+        <tr><td>已請款</td><td>開了請款單，<strong>已經到帳</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    進入這一頁時，如果目前的狀態一張都沒有，會自動跳到第一個有工單的分段——不會開門就是一片空白。
+    點任一張工單進去，會看到整批進度、請款狀態，以及<strong>每個工段各做了幾件</strong>；
+    有補貼的工段會印出「原價 +補貼」與補貼原因。
+  </p>
+
+  <h3>薪資</h3>
+  <p>
+    月份預設落在<strong>最近有薪資單的月份</strong>，不是當月——當月通常還沒結算，
+    預設當月會一打開就空白。下拉選單每個月份後面都標著該月結算了幾人。
+  </p>
+
   <div class="note">
     <span class="note-t">為什麼是唯讀</span>
-    <p>手機上手指誤觸就可能改錯薪資。這是硬性限制，寫在資料儲存的唯一出口上——即使有按鈕沒被隱藏，也絕對寫不進資料。</p>
+    <p>手機上手指誤觸就可能改錯薪資。這是硬性限制，寫在資料儲存的唯一出口上——即使有按鈕沒被隱藏，也絕對寫不進資料。右上角常駐「👁 唯讀」就是在講這件事。</p>
   </div>
 </section>
 
@@ -1876,7 +1957,7 @@
 
 <footer>
   <span>成衣製造薪資計算系統</span>
-  <span>使用說明書 Ver 4.0.1</span>
+  <span>使用說明書 Ver 4.0.2</span>
   <span>2026-08-16</span>
 </footer>
 
